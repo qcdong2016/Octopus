@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/">
+        <file>bubble.png</file>
+        <file>qml/main.qml</file>
+        <file>qml/MsgList.qml</file>
+        <file>qml/ChatForm.qml</file>
+        <file>qml/FriendList.qml</file>
+        <file>qml/LineInput.qml</file>
+        <file>qml/LoginUI.qml</file>
+        <file>qml/MainUI.qml</file>
+        <file>qml/Loading.qml</file>
+        <file>qml/Socket.qml</file>
+        <file>qml/MsgBox.qml</file>
+        <file>qml/MyDialog.qml</file>
+        <file>qml/Util.js</file>
+        <file>bubbleLeft.png</file>
+        <file>icon/addimage.png</file>
+        <file>icon/cut.png</file>
+        <file>icon/down.png</file>
+        <file>icon/face.png</file>
+        <file>icon/floder.png</file>
+        <file>icon/image.png</file>
+        <file>qml/MyToolButton.qml</file>
+        <file>qml/ImageViewer.qml</file>
+        <file>en_US.qm</file>
+        <file>zh_CN.qm</file>
+    </qresource>
+</RCC>
