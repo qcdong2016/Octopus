@@ -1,2 +1,3 @@
 build*
-server
+server/server
+server/data.db
