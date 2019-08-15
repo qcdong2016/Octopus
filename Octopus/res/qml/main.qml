@@ -1,8 +1,9 @@
-import QtQuick 2.13
-import QtQuick.Window 2.13
+import QtQuick 2.6
+import QtQuick.Window 2.2
 import QtQuick.Controls 2.4
 import Qt.labs.settings 1.0
 import QtQuick.Dialogs 1.1
+import Qt.labs.platform 1.1
 
 import QtQml.Models 2.1
 
@@ -14,6 +15,39 @@ Window {
     title: qsTr("Octopus")
     minimumHeight: 737
     minimumWidth: 761
+
+
+    onClosing: {
+        close.accepted = false;
+        window.hide()
+    }
+
+    SystemTrayIcon {
+        id: tray
+        visible: true
+        icon.source: "qrc:/icon_64x64.png"
+
+        onMessageClicked: {
+            window.requestActivate();
+            window.raise()
+            window.show();
+        }
+
+        onActivated: {
+            if (reason == SystemTrayIcon.DoubleClick) {
+                window.requestActivate();
+                window.raise()
+                window.show();
+            }
+        }
+
+        menu: Menu {
+                MenuItem {
+                    text: qsTr("Quit")
+                    onTriggered: Qt.quit()
+                }
+            }
+    }
 
     MsgBox {
         id: msgBox
@@ -97,11 +131,27 @@ Window {
         }
 
         function doAppendMsg(target, msg) {
+            var shouldNotify = false
             if (target == currentChat) {
                 model.append(msg)
                 shouldPositionView()
+
+                if (window.visibility == Window.Minimized || window.visibility == Window.Hidden) {
+                    shouldNotify = true;
+                }
             } else {
-                friendsModel.getByID(target).unread++
+                var friend = friendsModel.getByID(target)
+                friend.unread++
+                shouldNotify = true;
+            }
+
+            if (shouldNotify) {
+                var friend = friendsModel.getByID(target)
+                if (msg.Type == "text") {
+                    tray.showMessage(friend.Nickname, msg.Content)
+                } else {
+                    tray.showMessage(friend.Nickname, "[图片]")
+                }
             }
 
             var list = getHistory(target)

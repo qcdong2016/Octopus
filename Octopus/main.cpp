@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("Octopus");
     app.setApplicationName("Octopus");
 
-    QQmlApplicationEngine engineInstance;
-    Client::engine = &engineInstance;
+    QQmlApplicationEngine engine;
+    Client::engine = &engine;
 
     Client::setLanguageStatic("zh_CN");
 
@@ -33,12 +33,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<MyQuickWin>("MyPlugins", 1, 0, "MyQuickWin");
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
-    QObject::connect(&engineInstance, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
-    engineInstance.load(url);
+    engine.load(url);
 
     return app.exec();
 }
