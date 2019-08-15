@@ -1,5 +1,5 @@
-import QtQuick 2.6
-import QtQuick.Window 2.2
+import QtQuick 2.13
+import QtQuick.Window 2.13
 import QtQuick.Controls 2.4
 import Qt.labs.settings 1.0
 import QtQuick.Dialogs 1.1
@@ -15,7 +15,6 @@ Window {
     title: qsTr("Octopus")
     minimumHeight: 737
     minimumWidth: 761
-
 
     onClosing: {
         close.accepted = false;
@@ -34,19 +33,18 @@ Window {
         }
 
         onActivated: {
-            if (reason == SystemTrayIcon.DoubleClick) {
-                window.requestActivate();
-                window.raise()
-                window.show();
-            }
+            window.requestActivate();
+            window.raise()
+            window.show();
         }
 
         menu: Menu {
-                MenuItem {
-                    text: qsTr("Quit")
-                    onTriggered: Qt.quit()
-                }
-            }
+               id: menu1
+               MenuItem {
+                   text: qsTr("Quit")
+                   onTriggered: Qt.quit()
+               }
+           }
     }
 
     MsgBox {

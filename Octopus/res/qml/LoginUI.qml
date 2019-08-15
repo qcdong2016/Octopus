@@ -45,10 +45,8 @@ Component {
                 Layout.fillWidth: true
                 text: qsTr("login")
                 onClicked: {
-                    loading.open()
                     socket.login(input_acc.text, input_pwd.text)
                     socket.addHandler("login", (err, data) => {
-                                          loading.close()
                                           if (err) {
                                               socket.close()
                                               return

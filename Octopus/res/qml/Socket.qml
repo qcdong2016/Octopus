@@ -50,12 +50,14 @@ Client {
 
     onConnected: {
         console.log("Socket onConnected: " + url.toString())
+        loading.close()
         send("login", {ID: parseInt(settings.userid), Password: settings.password})
     }
 
     onDisConnected: {
         console.log("Socket onDisConnected: " + url.toString())
         close();
+        login(settings.userid, settings.password)
     }
 
     onPong: {
@@ -70,6 +72,9 @@ Client {
     }
 
     function login(uid, pass) {
+
+        loading.open()
+
         settings.userid = uid
         settings.password = pass
 
