@@ -69,9 +69,17 @@ Window {
 
     ListModel {
         id: friendsModel
-//        ListElement {
-//            unread: 99
-//        }
+        signal userStatusChanged(int userid)
+
+
+        function getNameByID(id) {
+            var c = getByID(id)
+            if (c) {
+                return c.Nickname
+            }
+
+            return ""
+        }
 
         function getByID(id) {
             for (var i =0; i < count; i++) {
@@ -82,21 +90,35 @@ Window {
             }
         }
 
-        function friendOnline(err, msg) {
-            msg.unread = 0
-            append(msg)
-        }
-
-        function friendOffline(err, msg) {
+        function bringToTop(id) {
             for (var i =0; i < count; i++) {
-                if (get(i).ID == msg) {
-                    remove(i)
+                var v = get(i)
+                if (v.ID == id) {
+                    move(i, 0, 1)
                     break
                 }
             }
+        }
 
-            if (count == 0) {
-                chatListModel.setCurrentChatTo(0)
+        function friendOnline(err, msg) {
+            msg.unread = 0
+
+            var friend = getByID(msg.ID)
+
+            if (friend) {
+                friend.Online = true
+                userStatusChanged(msg.ID)
+            } else {
+                append(msg)
+            }
+        }
+
+        function friendOffline(err, msg) {
+            var friend = getByID(msg)
+
+            if (friend) {
+                friend.Online = false
+                userStatusChanged(msg)
             }
         }
 
@@ -129,6 +151,8 @@ Window {
         }
 
         function doAppendMsg(target, msg) {
+            friendsModel.bringToTop(target)
+
             var shouldNotify = false
             if (target == currentChat) {
                 model.append(msg)
@@ -166,6 +190,7 @@ Window {
                                        model.append(v)
                                    })
             shouldPositionView()
+
             var fr = friendsModel.getByID(currentChat)
             if (fr) {
                 fr.unread = 0

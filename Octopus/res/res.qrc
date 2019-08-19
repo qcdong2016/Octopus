@@ -25,5 +25,6 @@
         <file>en_US.qm</file>
         <file>zh_CN.qm</file>
         <file>icon_64x64.png</file>
+        <file>qml/ChatInput.qml</file>
     </qresource>
 </RCC>

@@ -6,6 +6,8 @@
 
 MyImage::MyImage()
 {
+    _displayGray = false;
+    _shouldReload = true;
 }
 
 
@@ -20,7 +22,9 @@ void MyImage::setSource(QString url)
     }
 
     _source = url;
-    reload();
+    _shouldReload = true;
+    update();
+
     emit sourceChanged(url);
 }
 
@@ -30,6 +34,10 @@ QString MyImage::source() const
 }
 
 void MyImage::paint(QPainter *painter) {
+    if (_shouldReload) {
+        reload();
+    }
+
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QPainterPath path;
     QRect e(0, 0, _sourceSize.width(), _sourceSize.height());
@@ -103,6 +111,26 @@ void MyImage::reload() {
         bool ok = _img.load(url);
         qDebug() << ok;
     }
+
+    if (_displayGray) {
+        _img = toGray(_img);
+    }
+}
+
+void MyImage::setDisplayGray(bool arg) {
+    if (arg == _displayGray) {
+        return;
+    }
+
+    _displayGray = arg;
+    _shouldReload = true;
+    update();
+
+    emit displayGrayChanged(arg);
+}
+
+bool MyImage::displayGray() const {
+    return _displayGray;
 }
 
 void MyImage::setSourceSize(QSize arg)
@@ -112,9 +140,8 @@ void MyImage::setSourceSize(QSize arg)
     }
 
     _sourceSize = arg;
-
-    if(!_img.isNull())
-        reload();
+    _shouldReload = true;
+    update();
 
     emit sourceSizeChanged(arg);
 }

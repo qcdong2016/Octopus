@@ -9,7 +9,7 @@ import MyPlugins 1.0
 Rectangle {
     id: rect1
     anchors.fill: parent
-    color: "lightgray"
+//    color: "lightgray"
     
     ListView {
         id: frame

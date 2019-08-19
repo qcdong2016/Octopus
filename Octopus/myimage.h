@@ -9,15 +9,18 @@ class MyImage : public QQuickPaintedItem
     Q_OBJECT
     Q_PROPERTY(QSize sourceSize READ sourceSize WRITE setSourceSize NOTIFY sourceSizeChanged)
     Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(bool displayGray READ displayGray WRITE setDisplayGray NOTIFY displayGrayChanged)
 
 signals:
     void sourceSizeChanged(QSize arg);
     void sourceChanged(QString arg);
+    void displayGrayChanged(bool arg);
 
 public:
 
     void setSource(QString arg);
     void setSourceSize(QSize arg);
+    void setDisplayGray(bool arg);
 
     static QString randomAvatar(const QString& text);
 
@@ -28,6 +31,7 @@ public:
     virtual void paint(QPainter *painter);
     QSize sourceSize() const;
     QString source() const;
+    bool displayGray() const;
 
     void reload();
 
@@ -35,6 +39,8 @@ private:
     QString _source;
     QImage _img;
     QSize _sourceSize;
+    bool _displayGray;
+    bool _shouldReload;
 };
 
 class MyImage1 : public QQuickPaintedItem

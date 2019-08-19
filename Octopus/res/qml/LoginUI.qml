@@ -58,10 +58,12 @@ Component {
                                           me.userid = data.Me.ID
 
                                           data.Friends.forEach((v) => {
-                                                                   if (v.Online) {
-                                                                        v.unread = 0
+                                                                    v.unread = 0
+                                                                    if (v.Online) {
+                                                                        friendsModel.insert(0, v)
+                                                                    } else {
                                                                         friendsModel.append(v)
-                                                                   }
+                                                                    }
                                                                })
 
                                       }, true)

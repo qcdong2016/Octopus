@@ -46,6 +46,7 @@ Rectangle {
                         source: Avatar
                         sourceSize: Qt.size(width, height)
                         visible: true
+                        displayGray: !Online
                     }
                 }
                 
@@ -73,8 +74,6 @@ Rectangle {
                         }
                     }
                 }
-                
-                
             }
             
             MouseArea {
