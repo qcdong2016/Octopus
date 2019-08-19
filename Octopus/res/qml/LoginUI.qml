@@ -57,6 +57,7 @@ Component {
 
                                           me.userid = data.Me.ID
 
+                                          friendsModel.clear()
                                           data.Friends.forEach((v) => {
                                                                     v.unread = 0
                                                                     if (v.Online) {
