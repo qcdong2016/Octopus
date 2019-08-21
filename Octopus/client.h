@@ -10,6 +10,8 @@
 
 #include <QQuickWindow>
 
+#include "http.h"
+
 class MyQuickWin : public QQuickWindow {
     Q_OBJECT
 public:
@@ -62,6 +64,8 @@ public:
     Q_INVOKABLE QString base64decode(const QString& content);
     Q_INVOKABLE QString randomAvatar(const QString& text);
     Q_INVOKABLE static void setLanguageStatic(const QString& lan);
+    Q_INVOKABLE static bool exists(const QUrl& filePath);
+    Q_INVOKABLE static bool isDir(const QUrl& filePath);
 
     void setLanguage(QString lan) { setLanguageStatic(lan); }
     QString language();

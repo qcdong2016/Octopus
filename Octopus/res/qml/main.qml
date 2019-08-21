@@ -4,6 +4,7 @@ import QtQuick.Controls 2.4
 import Qt.labs.settings 1.0
 import QtQuick.Dialogs 1.1
 import Qt.labs.platform 1.1
+import MyPlugins 1.0
 
 import QtQml.Models 2.1
 
@@ -137,17 +138,53 @@ Window {
 
         property var model: ListModel{}
 
+        Component {
+            id: listMod
+            ListModel{
+            }
+        }
+
+        Component {
+            id: listEle
+            ListModel{
+                property string fileName: ""
+                property int to: 0
+                property int from: 0
+                property string content: ""
+                property string type: ""
+                property real progress: 0
+
+                function updateProgress(send, total) {
+                    console.log(send, total)
+                }
+            }
+        }
+
+        Component {
+            id: myhttp
+            Http {
+
+            }
+        }
+
+        function createUploader(fileurl, url, parent) {
+            var h = myhttp.createObject(parent)
+            h.url = url
+            h.upload(fileurl, url)
+            return h
+        }
+
         function getHistory(id) {
             var list = chatHistory[id]
             if (list == null) {
-                list = []
+                list = listMod.createObject(this)
                 chatHistory[id] = list
             }
             return list
         }
 
         function appendMsg(msg) {
-            doAppendMsg(msg.To, msg)
+            return doAppendMsg(msg.To, msg)
         }
 
         function doAppendMsg(target, msg) {
@@ -155,7 +192,6 @@ Window {
 
             var shouldNotify = false
             if (target == currentChat) {
-                model.append(msg)
                 shouldPositionView()
 
                 if (window.visibility == Window.Minimized || window.visibility == Window.Hidden) {
@@ -177,18 +213,28 @@ Window {
             }
 
             var list = getHistory(target)
-            list.push(msg)
-            if (list.length > 100) {
+            var msgObj = listEle.createObject(list)
+
+            msgObj.fileName = msg.FileName || ""
+            msgObj.from = msg.From
+            msgObj.to = msg.To
+            msgObj.type = msg.Type
+            msgObj.content = msg.Content || ""
+            msgObj.progress = (msg.Progress == null) ? 0 : msg.Progress
+
+            list.append(msgObj)
+            if (list.count > 100) {
                 list.slice(1);
             }
+
+            return msgObj
         }
 
         function setCurrentChatTo(id) {
             currentChat = id
-            model.clear()
-            getHistory(id).forEach((v) => {
-                                       model.append(v)
-                                   })
+//            model.clear()
+            model = getHistory(id)
+
             shouldPositionView()
 
             var fr = friendsModel.getByID(currentChat)

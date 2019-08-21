@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         client.cpp \
+        http.cpp \
         imagemanager.cpp \
         main.cpp \
         myimage.cpp \
@@ -44,6 +45,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     client.h \
+    http.h \
     imagemanager.h \
     myimage.h \
     qmleventfilter.h

@@ -156,3 +156,12 @@ void Client::setLanguageStatic(const QString &lan) {
 QString Client::language() {
     return ::language;
 }
+
+bool Client::exists(const QUrl& filePath) {
+    QFileInfo info (filePath.toLocalFile());
+    return info.exists();
+}
+bool Client::isDir(const QUrl& filePath) {
+    QFileInfo info (filePath.toLocalFile());
+    return info.isDir();
+}

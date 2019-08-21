@@ -60,18 +60,43 @@ Item {
                                 }
                             })
         }
+
+        function sendFile(fileurl) {
+
+            var obj = chatListModel.appendMsg({
+                                        From: me.userid,
+                                        To: chatListModel.currentChat,
+                                        Type: "file",
+                                        FileName: fileurl,
+                                        Progress: 0,
+                                        Content: "",
+                                    })
+
+            var url = "http://" + settings.server_ip + "/upFile?from="+me.userid + "&to=" + chatListModel.currentChat
+            var up = chatListModel.createUploader(fileurl, url, obj)
+            up.uploadProgress.connect((send, total)=> { obj.progress = send/total })
+
+        }
         
         function pasteUrls(urls) {
             var f = urls[0];
+
+            if (!socket.exists(f)) {
+                return false
+            }
             
             if (socket.sizeofFile(f) > 10485760) {
-                msgBox.show("只能发送10M以下的文件")
-                return false
+//                msgBox.show("只能发送10M以下的文件")
+                sendFile(f)
+                return true
             }
             var ext = Util.getFileExt(f)
             if (ext == "png" || ext == "gif" || ext == "jpg") {
                 var newName = socket.cacheFile(f)
                 sendImage(newName)
+                return true;
+            } else {
+                sendFile(f)
                 return true;
             }
         }

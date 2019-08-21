@@ -52,7 +52,7 @@ Component {
                                               return
                                           }
 
-                                          socket.islogin = true
+//                                          socket.islogin = true
                                           sceneManager.replace(mainui)
 
                                           me.userid = data.Me.ID

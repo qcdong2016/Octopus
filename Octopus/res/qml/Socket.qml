@@ -1,13 +1,10 @@
 import QtQuick 2.13
 import MyPlugins 1.0
 
-
 import 'Util.js' as Util
 
 Client {
     id: ws
-
-    property bool islogin: false
 
     function dispatch(message) {
         var index = message.indexOf("}")

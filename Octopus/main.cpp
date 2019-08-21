@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 
     Client::setLanguageStatic("zh_CN");
 
+    qmlRegisterType<Http>("MyPlugins", 1, 0, "Http");
     qmlRegisterType<MyImage>("MyPlugins", 1, 0, "MyImage");
     qmlRegisterType<MyImage1>("MyPlugins", 1, 0, "MyImage1");
     qmlRegisterType<QmlEventFilter>("MyPlugins", 1, 0, "EventFilter");

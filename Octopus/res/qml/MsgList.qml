@@ -1,6 +1,7 @@
 import QtQuick 2.13
 import QtQuick.Window 2.13
 import QtQuick.Controls 2.4
+import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.13
 import QtQuick.Dialogs 1.2
 import QtQuick.Controls.Styles 1.4
@@ -47,21 +48,140 @@ Rectangle {
             sourceComponent: selector()
 
             function selector() {
-                console.log(Content, FileName)
-                if (Type == "image") {
-                    if (From == me.userid) {
+                if (model.type == "image") {
+                    if (model.from == me.userid) {
                         return imageMsgRight
                     } else {
                         return imageMsgLeft
                     }
+                } else if (model.type == "file") {
+                    if (model.from == me.userid) {
+                        return fileMsgRight
+                    } else {
+                        return fileMsgLeft
+                    }
                 } else {
-                    if (From == me.userid) {
+                    if (model.from == me.userid) {
                         return textMsgRight
                     } else {
                         return textMsgLeft
                     }
                 }
             }
+
+            Component {
+                id: fileMsgRight
+                Item {
+                    id: row1
+                    width: parent.width
+                    height: children[0].height
+
+                    BorderImage {
+                        height: content.height + 30
+                        width: content.width + 40
+                        border { left: 26; top: 27; right: 27; bottom: 21 }
+                        horizontalTileMode: BorderImage.Stretch
+                        verticalTileMode: BorderImage.Stretch
+                        source: "qrc:/bubble.png"
+                        anchors.right: parent.right
+
+                        Item {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            anchors.topMargin: 10
+                            anchors.bottomMargin: 10
+                            Rectangle {
+                                id: content
+                                anchors.centerIn: parent
+                                width: 250
+                                height: 80
+
+                                ProgressBar{
+                                    value: 0.5;
+                                    width: parent.width
+                                    height: 10
+                                    anchors.bottom:  parent.bottom
+//                                    background: Rectangle {
+//                                        color: "#eaeaea"
+//                                    }
+                                    style: ProgressBarStyle{
+                                        id:progressBar4Style;
+                                        background: Rectangle{
+                                            color:"#eaeaea";
+                                        }
+
+                                        progress: Rectangle{
+                                            color: "#25c3ed"
+                                        }
+                                    }
+                                }
+
+                                Text {
+                                    text: model.fileName
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width
+                                    elide: Text.ElideMiddle
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onDoubleClicked: {
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Component {
+                id: fileMsgLeft
+                Item {
+                    id: row1
+                    width: parent.width
+                    height: children[0].height
+
+                    BorderImage {
+                        height: content.height + 30
+                        width: content.width + 40
+                        border { left: 26; top: 27; right: 27; bottom: 21 }
+                        horizontalTileMode: BorderImage.Stretch
+                        verticalTileMode: BorderImage.Stretch
+                        source: "qrc:/bubbleLeft.png"
+                        anchors.left: parent.left
+
+                        Item {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            anchors.topMargin: 10
+                            anchors.bottomMargin: 10
+
+                            Rectangle {
+                                id: content
+                                anchors.centerIn: parent
+                                width: 250
+                                height: 80
+
+                                Text {
+                                    text: model.fileName
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width
+                                    elide: Text.ElideMiddle
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onDoubleClicked: {
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
 
             Component {
                 id: imageMsgRight
@@ -88,7 +208,7 @@ Rectangle {
                             MyImage1 {
                                 id: content
                                 anchors.centerIn: parent
-                                source: socket.cachedFilePath(FileName)
+                                source: socket.cachedFilePath(model.fileName)
                                 width: imageSize.height < 300 ? (imageSize.width > frame.width ? frame.width*0.7 : imageSize.width) : height/imageSize.height * imageSize.width
                                 height: imageSize.height < 300 ? (width / imageSize.width * imageSize.height) : 300
                             }
@@ -96,7 +216,7 @@ Rectangle {
                             MouseArea {
                                 anchors.fill: parent
                                 onDoubleClicked: {
-                                    socket.viewImage(socket.cachedFilePath(FileName))
+                                    socket.viewImage(socket.cachedFilePath(model.fileName))
                                 }
                             }
                         }
@@ -130,14 +250,14 @@ Rectangle {
                             MyImage1 {
                                 id: content
                                 anchors.centerIn: parent
-                                source: socket.cachedFilePath(FileName)
+                                source: socket.cachedFilePath(model.fileName)
                                 width: imageSize.height < 300 ? (imageSize.width > frame.width ? frame.width*0.7 : imageSize.width) : height/imageSize.height * imageSize.width
                                 height: imageSize.height < 300 ? (width / imageSize.width * imageSize.height) : 300
                             }
                             MouseArea {
                                 anchors.fill: parent
                                 onDoubleClicked: {
-                                    socket.viewImage(socket.cachedFilePath(FileName))
+                                    socket.viewImage(socket.cachedFilePath(model.fileName))
                                 }
                             }
                         }
@@ -179,7 +299,7 @@ Rectangle {
                                 antialiasing: true
                                 readOnly: true
                                 wrapMode: TextEdit.Wrap
-                                text: Content ? Content : ""
+                                text: model.content
                             }
                         }
                     }
@@ -220,7 +340,7 @@ Rectangle {
                                 antialiasing: true
                                 readOnly: true
                                 wrapMode: TextEdit.Wrap
-                                text: Content ? Content : ""
+                                text: model.content
                             }
 
                         }
