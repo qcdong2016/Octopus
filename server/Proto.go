@@ -45,3 +45,10 @@ type ReqChatImageP2P struct {
 type RespChatTextP2P struct {
 	ReqChatTextP2P
 }
+
+type FileMsg struct {
+	From     int
+	To       int
+	URL      string
+	FileName string
+}

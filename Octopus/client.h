@@ -66,6 +66,7 @@ public:
     Q_INVOKABLE static void setLanguageStatic(const QString& lan);
     Q_INVOKABLE static bool exists(const QUrl& filePath);
     Q_INVOKABLE static bool isDir(const QUrl& filePath);
+    Q_INVOKABLE static void openAndSelectFile(QUrl file);
 
     void setLanguage(QString lan) { setLanguageStatic(lan); }
     QString language();

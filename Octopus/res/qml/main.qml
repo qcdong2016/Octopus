@@ -145,32 +145,23 @@ Window {
         }
 
         Component {
-            id: listEle
-            ListModel{
-                property string fileName: ""
-                property int to: 0
-                property int from: 0
-                property string content: ""
-                property string type: ""
-                property real progress: 0
-
-                function updateProgress(send, total) {
-                    console.log(send, total)
-                }
-            }
-        }
-
-        Component {
             id: myhttp
             Http {
 
             }
         }
 
+        function createDownloader(fileurl, url, parent) {
+            var h = myhttp.createObject(parent)
+            h.url = url
+            h.download(fileurl)
+            return h
+        }
+
         function createUploader(fileurl, url, parent) {
             var h = myhttp.createObject(parent)
             h.url = url
-            h.upload(fileurl, url)
+            h.upload(fileurl)
             return h
         }
 
@@ -186,6 +177,7 @@ Window {
         function appendMsg(msg) {
             return doAppendMsg(msg.To, msg)
         }
+
 
         function doAppendMsg(target, msg) {
             friendsModel.bringToTop(target)
@@ -213,21 +205,24 @@ Window {
             }
 
             var list = getHistory(target)
-            var msgObj = listEle.createObject(list)
+            var msgObj = {}
 
-            msgObj.fileName = msg.FileName || ""
             msgObj.from = msg.From
             msgObj.to = msg.To
             msgObj.type = msg.Type
             msgObj.content = msg.Content || ""
             msgObj.progress = (msg.Progress == null) ? 0 : msg.Progress
+            msgObj.status = msg.Status || ""
+            msgObj.url = msg.URL || ""
+            msgObj.fileName = msg.FileName || ""
+            msgObj.absFileName = ""
 
             list.append(msgObj)
             if (list.count > 100) {
                 list.slice(1);
             }
 
-            return msgObj
+            return list.get(list.count - 1)
         }
 
         function setCurrentChatTo(id) {
@@ -263,9 +258,21 @@ Window {
                         })
         }
 
+        function onRecvFileMessage(err, msg) {
+            doAppendMsg(msg.From, {
+                            From: msg.From,
+                            To: msg.To,
+                            Type: "file",
+                            FileName: msg.FileName,
+                            URL: msg.URL,
+                            Status: "ready",
+                        })
+        }
+
         Component.onCompleted: {
             socket.addHandler("chat.text", onRecvTextMessage)
             socket.addHandler("chat.image", onRecvImageMessage)
+            socket.addHandler("chat.file", onRecvFileMessage)
         }
     }
 

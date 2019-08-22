@@ -77,4 +77,31 @@ private:
     QMovie* _movie;
 };
 
+#include <QPixmap>
+
+class MyFileIcon : public QQuickPaintedItem {
+    Q_OBJECT
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+
+signals:
+    void sourceChanged();
+public:
+    void setSource(QUrl arg);
+public:
+    MyFileIcon();
+    ~MyFileIcon();
+
+    virtual void paint(QPainter *painter);
+    QUrl source() const;
+
+public slots:
+    void requestReload();
+    void reload();
+
+private:
+    QUrl _source;
+    QPixmap _img;
+    bool _shouldReload;
+};
+
 #endif // MYIMAGE_H

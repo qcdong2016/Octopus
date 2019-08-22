@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QtGui>
 #include <QtQml>
@@ -7,6 +7,7 @@
 #include "qmleventfilter.h"
 #include "myimage.h"
 #include "client.h"
+#include "filesavedialog.h"
 
 
 int main(int argc, char *argv[])
@@ -15,7 +16,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     app.setOrganizationName("Octopus");
     app.setOrganizationDomain("Octopus");
@@ -32,6 +33,8 @@ int main(int argc, char *argv[])
     qmlRegisterType<QmlEventFilter>("MyPlugins", 1, 0, "EventFilter");
     qmlRegisterType<Client>("MyPlugins", 1, 0, "Client");
     qmlRegisterType<MyQuickWin>("MyPlugins", 1, 0, "MyQuickWin");
+    qmlRegisterType<MyFileIcon>("MyPlugins", 1, 0, "MyFileIcon");
+    qmlRegisterType<FileSaveDialog>("MyPlugins", 1, 0, "FileSaveDialog");
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
     engine.load(url);

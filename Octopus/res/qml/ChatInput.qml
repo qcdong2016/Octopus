@@ -67,15 +67,19 @@ Item {
                                         From: me.userid,
                                         To: chatListModel.currentChat,
                                         Type: "file",
-                                        FileName: fileurl,
-                                        Progress: 0,
-                                        Content: "",
+                                        FileName: Util.getBaseName(fileurl),
                                     })
 
             var url = "http://" + settings.server_ip + "/upFile?from="+me.userid + "&to=" + chatListModel.currentChat
             var up = chatListModel.createUploader(fileurl, url, obj)
-            up.uploadProgress.connect((send, total)=> { obj.progress = send/total })
-
+            obj.status = "uploading"
+            up.uploadProgress.connect((send, total)=> {
+                                          if (total != 0) {
+                                              obj.progress = send/total
+                                          }
+                                      })
+            up.finished.connect(()=> { obj.status = "sended"; obj.absFileName = fileurl })
+            up.error.connect(()=> { obj.status = "error" })
         }
         
         function pasteUrls(urls) {

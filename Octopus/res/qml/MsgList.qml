@@ -3,9 +3,10 @@ import QtQuick.Window 2.13
 import QtQuick.Controls 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.13
-import QtQuick.Dialogs 1.2
+import QtQuick.Dialogs 1.3
 import QtQuick.Controls.Styles 1.4
 import MyPlugins 1.0
+import Qt.labs.platform 1.1
 
 Rectangle {
     id: rect1
@@ -39,6 +40,59 @@ Rectangle {
         }
     }
 
+    function getSettings() {
+        return settings
+    }
+
+    FileSaveDialog {
+        id:fds
+        title: qsTr("Save File")
+
+        property string fileSelected: ""
+        property variant selectMsgModel: ""
+
+
+        onAccepted: {
+            fileSelected = fds.fileUrl;
+            selectMsgModel.status = "downloading"
+            selectMsgModel.absFileName = fileSelected
+
+            var url = "http://" + getSettings().server_ip + "/downFile?file=" + selectMsgModel.url
+            var down = chatListModel.createDownloader(fileSelected, url, selectMsgModel)
+
+            down.downloadProgress.connect((down, total) => {
+                                              console.log(down/total,down, total )
+                                              selectMsgModel.progress = down/total
+                                          })
+            down.error.connect(() => { selectMsgModel.status = "error" })
+            down.finished.connect(() => { selectMsgModel.status = "recved" })
+        }
+
+        onRejected: {
+        }
+
+
+
+        function saveMe(model) {
+
+            if (model.status == "recved" || model.status == "sended") {
+                socket.openAndSelectFile(model.absFileName)
+                return
+            }
+
+            if (model.from == me.userid) {
+                return
+            }
+
+            selectMsgModel = model
+
+            if (model.status == "ready") {
+                this.filename = model.fileName
+                fds.open()
+            }
+        }
+    }
+
     Component {
         id: bubble
         Loader {
@@ -66,6 +120,27 @@ Rectangle {
                     } else {
                         return textMsgLeft
                     }
+                }
+            }
+
+            function statusToText(status, progress) {
+                if (status == "uploading") {
+                    return qsTr("上传中") + Number(progress*100).toFixed() + "%"
+                }
+                if (status == "sended") {
+                    return qsTr("发送成功")
+                }
+                if (status == "error") {
+                    return qsTr("失败")
+                }
+                if (status == "ready") {
+                    return qsTr("等待接收")
+                }
+                if (status == "downloading") {
+                    return qsTr("下载中") + Number(progress*100).toFixed() + "%"
+                }
+                if (status == "recved") {
+                    return qsTr("已接收")
                 }
             }
 
@@ -97,37 +172,38 @@ Rectangle {
                                 width: 250
                                 height: 80
 
-                                ProgressBar{
-                                    value: 0.5;
-                                    width: parent.width
-                                    height: 10
-                                    anchors.bottom:  parent.bottom
-//                                    background: Rectangle {
-//                                        color: "#eaeaea"
-//                                    }
-                                    style: ProgressBarStyle{
-                                        id:progressBar4Style;
-                                        background: Rectangle{
-                                            color:"#eaeaea";
-                                        }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    MyFileIcon {
+                                        id: fileicon
+                                        source: model.fileName
+                                        width: 50
+                                        height: 50
+                                    }
 
-                                        progress: Rectangle{
-                                            color: "#25c3ed"
+                                    Item {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        Text {
+                                            anchors.centerIn: parent
+                                            width: parent.width
+                                            text: model.fileName
+                                            elide: Text.ElideMiddle
                                         }
                                     }
                                 }
 
                                 Text {
-                                    text: model.fileName
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width
-                                    elide: Text.ElideMiddle
+                                    text: statusToText(model.status, model.progress)
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
                                 }
                             }
 
                             MouseArea {
                                 anchors.fill: parent
-                                onDoubleClicked: {
+                                onClicked: {
+                                    fds.saveMe(model)
                                 }
                             }
                         }
@@ -164,16 +240,39 @@ Rectangle {
                                 width: 250
                                 height: 80
 
+                                RowLayout {
+                                    anchors.fill: parent
+
+                                    Item {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        Text {
+                                            anchors.centerIn: parent
+                                            width: parent.width
+                                            text: model.fileName
+                                            elide: Text.ElideMiddle
+                                        }
+                                    }
+
+                                    MyFileIcon {
+                                        id: fileicon
+                                        source: model.fileName
+                                        width: 50
+                                        height: 50
+                                    }
+                                }
+
                                 Text {
-                                    text: model.fileName
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width
-                                    elide: Text.ElideMiddle
+                                    text: statusToText(model.status, model.progress)
+                                    anchors.left: parent.left
+                                    anchors.bottom: parent.bottom
                                 }
                             }
+
                             MouseArea {
                                 anchors.fill: parent
-                                onDoubleClicked: {
+                                onClicked: {
+                                    fds.saveMe(model)
                                 }
                             }
                         }

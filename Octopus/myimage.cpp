@@ -231,3 +231,75 @@ void MyImage1::reload() {
 //    this->setWidth(_movie->width());
 //    this->setHeight(_movie->height());
 }
+
+
+
+
+MyFileIcon::MyFileIcon()
+{
+    _shouldReload = true;
+    connect(this, SIGNAL(widthChanged()), this, SLOT(requestReload()));
+    connect(this, SIGNAL(heightChanged()), this, SLOT(requestReload()));
+    connect(this, SIGNAL(sourceChanged()), this, SLOT(requestReload()));
+}
+
+
+MyFileIcon::~MyFileIcon()
+{
+}
+
+#include <QFileInfo>
+#include <QFileIconProvider>
+
+
+void MyFileIcon::setSource(QUrl url)
+{
+    if (_source == url) {
+        return;
+    }
+
+    _source = url;
+    emit sourceChanged();
+}
+
+QUrl MyFileIcon::source() const
+{
+    return _source;
+}
+
+void MyFileIcon::paint(QPainter *painter) {
+    if (_shouldReload) {
+        _shouldReload = true;
+        reload();
+    }
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QRect e(0, 0, width(), height());
+    painter->drawPixmap(e, _img);
+}
+
+void MyFileIcon::requestReload() {
+    _shouldReload = true;
+    update();
+}
+
+QString getExt(QString filepath) {
+    int index = filepath.lastIndexOf(".");
+    if (index == -1) {
+        return "";
+    }
+    return filepath.mid(index+1);
+}
+
+void MyFileIcon::reload() {
+     QString ext = getExt(_source.toString());
+     QString path = ImageManager::cached("geticon." + ext);
+     QFile f(path);
+     f.open(QIODevice::WriteOnly);
+     f.close();
+
+     QFileInfo fileInfo(path);
+
+    QFileIconProvider icon;
+    _img = icon.icon(fileInfo).pixmap(width(), height());
+}

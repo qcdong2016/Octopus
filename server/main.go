@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/labstack/echo"
 	uuid "github.com/satori/go.uuid"
@@ -30,6 +31,7 @@ func main() {
 	e.POST("/regist", handleRegist)
 	e.GET("/chat", handleChat)
 	e.POST("/upFile", handleUpFile)
+	e.GET("/downFile", handleDownFile)
 
 	dispatcher.Add("login", onLogin)
 	dispatcher.Add("chat.text", onChatText)
@@ -79,30 +81,55 @@ func handleUpFile(c echo.Context) error {
 		return errors.New("args error")
 	}
 
-	destPath := "./files/" + from
-
-	err = os.MkdirAll(destPath, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
 	fileUUID, err := uuid.NewV4()
 	if err != nil {
 		return err
 	}
 
-	destPath = filepath.Join(destPath, fileUUID.String()+filepath.Ext(formFile.Filename))
+	relPath := filepath.Join("files", from, fileUUID.String()+filepath.Ext(formFile.Filename))
+	absPath := filepath.Join(".", relPath)
 
-	destFile, err := os.Create(destPath)
+	err = os.MkdirAll(filepath.Dir(absPath), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	destFile, err := os.Create(absPath)
 	if err != nil {
 		return err
 	}
 	defer destFile.Close()
+
+	fileMgr.Add(absPath)
 
 	_, err = io.Copy(destFile, reader)
 	if err != nil {
 		return err
 	}
 
+	toUserId, err := strconv.Atoi(c.QueryParam("to"))
+	if err != nil {
+		return err
+	}
+	fromUserId, err := strconv.Atoi(from)
+	if err != nil {
+		return err
+	}
+
+	user := server.Get(toUserId)
+	if user != nil {
+		user.Send("chat.file", &FileMsg{
+			From:     fromUserId,
+			To:       toUserId,
+			FileName: formFile.Filename,
+			URL:      relPath,
+		}, nil)
+	}
+
 	return nil
+}
+
+func handleDownFile(c echo.Context) error {
+	file := c.QueryParam("file")
+	return c.File(filepath.Join(".", file))
 }

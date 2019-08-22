@@ -165,3 +165,18 @@ bool Client::isDir(const QUrl& filePath) {
     QFileInfo info (filePath.toLocalFile());
     return info.isDir();
 }
+
+#include <QProcess>
+void Client::openAndSelectFile(QUrl file) {
+    QString filePath = file.toLocalFile();
+    QString path, cmd;
+#ifdef _WIN32
+    path = filePath.replace("/", "\\");
+    cmd = QString("explorer.exe /select,\"%1\"").arg(path);
+#else
+    path = filePath.replace("\\", "/");
+    cmd = QString("open -R \"%1\"").arg(path);
+#endif
+    QProcess process;
+    process.startDetached(cmd);
+}
