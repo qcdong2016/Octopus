@@ -1,13 +1,10 @@
 import QtQuick 2.13
 import QtQuick.Window 2.13
 import QtQuick.Controls 2.4
-import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.13
 import QtQuick.Dialogs 1.3
 import QtQuick.Controls.Styles 1.4
 import MyPlugins 1.0
-import Qt.labs.platform 1.1
-
 Rectangle {
     id: rect1
     anchors.fill: parent
