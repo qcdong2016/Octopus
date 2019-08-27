@@ -106,7 +106,7 @@ func (this *WsConn) Send(route, d interface{}, addbytes []byte) error {
 
 	bytes = append(bytes, bytesData...)
 
-	logger.Info("send", "msg", string(bytes))
+	// logger.Info("send", "msg", string(bytes))
 	if addbytes != nil {
 		bytes = append(bytes, addbytes...)
 		this.send(bytes, websocket.BinaryMessage)

@@ -31,7 +31,7 @@ func NewPackage(uid int, buf []byte) (*Package, error) {
 		pkg.Data = buf[index+1+pkg.ArgsSize:]
 	}
 
-	logger.Info("recv", "msg", string(buf[:index+1+pkg.ArgsSize]))
+	// logger.Info("recv", "msg", string(buf[:index+1+pkg.ArgsSize]))
 
 	return pkg, nil
 }

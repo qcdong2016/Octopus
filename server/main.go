@@ -2,12 +2,12 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo"
 	uuid "github.com/satori/go.uuid"
@@ -65,7 +65,6 @@ func handleChat(c echo.Context) error {
 }
 
 func handleUpFile(c echo.Context) error {
-	fmt.Println("handleupfile")
 	formFile, err := c.FormFile("file")
 	if err != nil {
 		return err
@@ -100,7 +99,7 @@ func handleUpFile(c echo.Context) error {
 	}
 	defer destFile.Close()
 
-	fileMgr.Add(absPath)
+	dataMgr.AddFile(absPath)
 
 	_, err = io.Copy(destFile, reader)
 	if err != nil {

@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func onLogin(conn *WsConn, pkg *Package) error {
 	msg := &ReqLogin{}
 	if err := pkg.Bind(msg); err != nil {
@@ -22,7 +20,6 @@ func onLogin(conn *WsConn, pkg *Package) error {
 		server.Add(conn.UserID, conn)
 		server.BroadcastExcept("friendOnline", u, u.ID)
 	}
-	fmt.Println("login", msg.ID)
 	return nil
 }
 

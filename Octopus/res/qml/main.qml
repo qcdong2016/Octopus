@@ -40,7 +40,6 @@ Window {
         }
 
         menu: Menu {
-               id: menu1
                MenuItem {
                    text: qsTr("Quit")
                    onTriggered: Qt.quit()

@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"os"
 	"sync"
+	"time"
 
+	"github.com/robfig/cron"
 	"upper.io/db.v3/lib/sqlbuilder"
 	"upper.io/db.v3/sqlite"
 )
@@ -42,6 +45,10 @@ func NewDataManager() *DataManager {
 		password varchar(12) DEFAULT NULL,
 		avatar   varchar(100)
 	);
+	CREATE TABLE IF NOT EXISTS files(
+		path varchar(50),
+		date DATE
+	);
 	`)
 
 	if err != nil {
@@ -58,6 +65,8 @@ func NewDataManager() *DataManager {
 	for _, u := range users {
 		d.users[u.ID] = u
 	}
+
+	d.startCron()
 
 	return d
 }
@@ -136,4 +145,33 @@ func (d *DataManager) GetFriends(user int) []*User {
 	}
 
 	return friends
+}
+
+type FileElement struct {
+	Path string    `db:"path"`
+	Date time.Time `db:"date"`
+}
+
+func (d *DataManager) startCron() {
+	c := cron.New()
+	c.AddFunc("@daily", func() {
+		d.clearFiles()
+	})
+	c.Start()
+}
+
+func (d *DataManager) clearFiles() {
+	eles := []*FileElement{}
+	d.DB.Collection("files").Find().All(&eles)
+	for _, e := range eles {
+		os.Remove(e.Path)
+	}
+	d.DB.Collection("files").Truncate()
+}
+
+func (d *DataManager) AddFile(filepath string) {
+	d.DB.Collection("files").Insert(&FileElement{
+		Path: filepath,
+		Date: time.Now(),
+	})
 }
