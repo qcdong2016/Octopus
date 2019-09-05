@@ -22,7 +22,6 @@ Item {
                 return
             }
             
-            console.log(edit.text)
             var content = socket.base64encode(edit.text)
             edit.text = ""
             

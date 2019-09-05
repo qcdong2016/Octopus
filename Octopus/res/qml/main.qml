@@ -183,7 +183,6 @@ Window {
 
             var shouldNotify = false
             if (target == currentChat) {
-                shouldPositionView()
 
                 if (window.visibility == Window.Minimized || window.visibility == Window.Hidden) {
                     shouldNotify = true;
@@ -219,6 +218,10 @@ Window {
             list.append(msgObj)
             if (list.count > 100) {
                 list.slice(1);
+            }
+
+            if (target == currentChat) {
+                shouldPositionView()
             }
 
             return list.get(list.count - 1)
