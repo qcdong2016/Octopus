@@ -67,6 +67,9 @@ public:
     Q_INVOKABLE static bool exists(const QUrl& filePath);
     Q_INVOKABLE static bool isDir(const QUrl& filePath);
     Q_INVOKABLE static void openAndSelectFile(QUrl file);
+    Q_INVOKABLE static void copyImageToMemory(QString file);
+    Q_INVOKABLE static void copyFile(QString from, QUrl to);
+
 
     void setLanguage(QString lan) { setLanguageStatic(lan); }
     QString language();

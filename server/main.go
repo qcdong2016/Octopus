@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/labstack/echo"
 	uuid "github.com/satori/go.uuid"

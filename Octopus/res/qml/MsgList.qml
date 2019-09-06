@@ -5,6 +5,8 @@ import QtQuick.Layouts 1.13
 import QtQuick.Dialogs 1.3
 import QtQuick.Controls.Styles 1.4
 import MyPlugins 1.0
+import Qt.labs.platform 1.1
+import 'Util.js' as Util
 Rectangle {
     id: rect1
     anchors.fill: parent
@@ -47,9 +49,15 @@ Rectangle {
 
         property string fileSelected: ""
         property variant selectMsgModel: ""
+        property string sourceFile: ""
 
 
         onAccepted: {
+            if (sourceFile != "") {
+                socket.copyFile(sourceFile, fds.fileUrl)
+                return
+            }
+
             fileSelected = fds.fileUrl;
             selectMsgModel.status = "downloading"
             selectMsgModel.absFileName = fileSelected
@@ -58,7 +66,6 @@ Rectangle {
             var down = chatListModel.createDownloader(fileSelected, url, selectMsgModel)
 
             down.downloadProgress.connect((down, total) => {
-                                              console.log(down/total,down, total )
                                               selectMsgModel.progress = down/total
                                           })
             down.error.connect(() => { selectMsgModel.status = "error" })
@@ -68,9 +75,8 @@ Rectangle {
         onRejected: {
         }
 
-
-
         function saveMe(model) {
+            this.sourceFile = "";
 
             if (model.status == "recved" || model.status == "sended") {
                 socket.openAndSelectFile(model.absFileName)
@@ -87,6 +93,37 @@ Rectangle {
                 this.filename = model.fileName
                 fds.open()
             }
+        }
+
+        function saveImage(image) {
+            this.sourceFile = image
+            this.filename = Util.getBaseName(image)
+            fds.open()
+        }
+    }
+
+    Menu {
+        id: imgContextMenu
+        property string image: ""
+        MenuItem {
+            text: qsTr("复制")
+            shortcut: StandardKey.ZoomOut
+            onTriggered: {
+                socket.copyImageToMemory(imgContextMenu.image)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("保存")
+            shortcut: StandardKey.ZoomOut
+            onTriggered: {
+                fds.saveImage(imgContextMenu.image)
+            }
+        }
+
+        function showMe(imagepath) {
+            this.image = imagepath
+            this.open()
         }
     }
 
@@ -305,14 +342,47 @@ Rectangle {
                                 id: content
                                 anchors.centerIn: parent
                                 source: socket.cachedFilePath(model.fileName)
-                                width: imageSize.height < 300 ? (imageSize.width > frame.width ? frame.width*0.7 : imageSize.width) : height/imageSize.height * imageSize.width
-                                height: imageSize.height < 300 ? (width / imageSize.width * imageSize.height) : 300
+                                width: {
+                                        if (imageSize.width > imageSize.height) {
+                                            if (imageSize.width >= frame.width * 0.7) {
+                                                return frame.width * 0.7
+                                            }
+                                            return imageSize.width
+                                        } else {
+                                            if (imageSize.height < 300) {
+                                                return imageSize.width
+                                            }
+
+                                            return height / imageSize.height * imageSize.width
+                                        }
+                                }
+                                height: {
+                                    if (imageSize.width > imageSize.height) {
+                                        if (imageSize.width >= frame.width * 0.7) {
+                                            return width / imageSize.width * imageSize.height
+                                        }
+                                        return imageSize.height
+                                    } else {
+                                        if (imageSize.height < 300) {
+                                            return imageSize.height
+                                        }
+
+                                        return 300
+                                    }
+                                }
                             }
 
                             MouseArea {
                                 anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: {
+                                    if (mouse.button == Qt.RightButton) {
+                                        imgContextMenu.showMe(content.source)
+                                    }
+                                }
+
                                 onDoubleClicked: {
-                                    socket.viewImage(socket.cachedFilePath(model.fileName))
+                                    socket.viewImage(content.source)
                                 }
                             }
                         }
@@ -347,11 +417,43 @@ Rectangle {
                                 id: content
                                 anchors.centerIn: parent
                                 source: socket.cachedFilePath(model.fileName)
-                                width: imageSize.height < 300 ? (imageSize.width > frame.width ? frame.width*0.7 : imageSize.width) : height/imageSize.height * imageSize.width
-                                height: imageSize.height < 300 ? (width / imageSize.width * imageSize.height) : 300
+                                width: {
+                                        if (imageSize.width > imageSize.height) {
+                                            if (imageSize.width >= frame.width * 0.7) {
+                                                return frame.width * 0.7
+                                            }
+                                            return imageSize.width
+                                        } else {
+                                            if (imageSize.height < 300) {
+                                                return imageSize.width
+                                            }
+
+                                            return height / imageSize.height * imageSize.width
+                                        }
+                                }
+                                height: {
+                                    if (imageSize.width > imageSize.height) {
+                                        if (imageSize.width >= frame.width * 0.7) {
+                                            return width / imageSize.width * imageSize.height
+                                        }
+                                        return imageSize.height
+                                    } else {
+                                        if (imageSize.height < 300) {
+                                            return imageSize.height
+                                        }
+
+                                        return 300
+                                    }
+                                }
                             }
                             MouseArea {
                                 anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: {
+                                    if (mouse.button == Qt.RightButton) {
+                                        imgContextMenu.showMe(content.source)
+                                    }
+                                }
                                 onDoubleClicked: {
                                     socket.viewImage(socket.cachedFilePath(model.fileName))
                                 }

@@ -180,3 +180,17 @@ void Client::openAndSelectFile(QUrl file) {
     QProcess process;
     process.startDetached(cmd);
 }
+
+#include <QApplication>
+#include <QClipboard>
+#include <QImage>
+
+void Client::copyImageToMemory(QString file) {
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setImage(QImage(file));
+}
+
+#include <QFile>
+void Client::copyFile(QString from, QUrl to) {
+    QFile::copy(from, to.toLocalFile());
+}
