@@ -2,10 +2,7 @@
 ![preview]
 
 # Octopus
-A tiny chat tool. Power by Qt(C++ and QML). Support send text and images.
-
-### Why ?
-No why. I just want create it.
+A very tiny chat app. Power by Qt(C++ and QML). Support sending text images and files.
 
 __[Icons(www.iconfont.cn)](https://www.iconfont.cn)__
 
