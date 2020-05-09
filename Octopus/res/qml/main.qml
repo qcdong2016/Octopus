@@ -5,7 +5,6 @@ import Qt.labs.settings 1.0
 import QtQuick.Dialogs 1.1
 import Qt.labs.platform 1.1
 import MyPlugins 1.0
-
 import QtQml.Models 2.1
 
 Window {
@@ -34,17 +33,25 @@ Window {
         }
 
         onActivated: {
-            window.requestActivate();
-            window.raise()
-            window.show();
+            if (reason == SystemTrayIcon.Context) {
+                menu1.open()
+            } else if (reason == SystemTrayIcon.DoubleClick) {
+                window.requestActivate();
+                window.raise()
+                window.show();
+            }
         }
 
-        menu: Menu {
-               MenuItem {
-                   text: qsTr("Quit")
-                   onTriggered: Qt.quit()
-               }
-           }
+        menu: menu1
+
+    }
+
+    Menu {
+       id: menu1
+       MenuItem {
+           text: qsTr("Quit")
+           onTriggered: Qt.quit()
+       }
     }
 
     MsgBox {
