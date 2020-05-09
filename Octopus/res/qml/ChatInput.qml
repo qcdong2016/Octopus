@@ -1,9 +1,11 @@
 import QtQuick 2.13
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.13
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Controls 2.5
 import MyPlugins 1.0
+
 
 import 'Util.js' as Util
 
@@ -114,6 +116,32 @@ Item {
         }
     }
     
+    FileDialog {
+        id:fds
+        title: "选择图片"
+        folder: shortcuts.desktop
+        selectExisting: true
+        selectFolder: false
+        selectMultiple: false
+        onAccepted: {
+            let url = fds.fileUrl;
+            filter.pasteUrls([url.toString()])
+        }
+
+        onRejected: {
+        }
+
+        function openImages() {
+            this.nameFilters = ["图片文件 (*.png *.jpg *.jpeg)"]
+            this.open()
+        }
+        function openFiles() {
+            this.nameFilters = ["文件 (*.*)"]
+            this.open()
+        }
+
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 2
@@ -139,10 +167,16 @@ Item {
                 
                 MyToolButton {
                     source: "qrc:/icon/image.png"
+                    onClicked: {
+                        fds.openImages()
+                    }
                 }
                 
                 MyToolButton {
                     source: "qrc:/icon/floder.png"
+                    onClicked: {
+                        fds.openFiles()
+                    }
                 }
             }
         }

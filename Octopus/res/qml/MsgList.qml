@@ -107,7 +107,6 @@ Rectangle {
         property string image: ""
         MenuItem {
             text: qsTr("复制")
-            shortcut: StandardKey.ZoomOut
             onTriggered: {
                 socket.copyImageToMemory(imgContextMenu.image)
             }
@@ -115,7 +114,6 @@ Rectangle {
 
         MenuItem {
             text: qsTr("保存")
-            shortcut: StandardKey.ZoomOut
             onTriggered: {
                 fds.saveImage(imgContextMenu.image)
             }
@@ -176,6 +174,7 @@ Rectangle {
                 if (status == "recved") {
                     return qsTr("已接收")
                 }
+                return ""
             }
 
             Component {
