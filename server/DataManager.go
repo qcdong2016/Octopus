@@ -12,8 +12,7 @@ import (
 )
 
 type DataManager struct {
-	users  map[int]*User
-	groups map[int]*Group
+	users map[int]*User
 
 	DB sqlbuilder.Database
 
@@ -24,7 +23,6 @@ func NewDataManager() *DataManager {
 	d := &DataManager{}
 
 	d.users = map[int]*User{}
-	d.groups = map[int]*Group{}
 
 	var settings = sqlite.ConnectionURL{
 		Database: `./data.db`, // Path to a sqlite3 database file.
@@ -113,6 +111,19 @@ func (d *DataManager) Logout(uid int) {
 	}
 }
 
+func (d *DataManager) Get(id int) *User {
+
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
+	u, ok := d.users[id]
+	if ok {
+		return u
+	}
+
+	return nil
+}
+
 func (d *DataManager) Login(msg *ReqLogin) (*User, error) {
 
 	d.lock.Lock()
@@ -137,6 +148,14 @@ func (d *DataManager) GetFriends(user int) []*User {
 	defer d.lock.Unlock()
 
 	friends := make([]*User, 0, len(d.users))
+
+	// friends = append(friends, &User{
+	// 	ID:       996,
+	// 	Nickname: "所有人",
+	// 	Avatar:   "fonts:/#00ffff/#fff0aa/所",
+	// 	Online:   true,
+	// 	Group:    true,
+	// })
 
 	for _, u := range d.users {
 		if u.ID != user {

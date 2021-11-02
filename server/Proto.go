@@ -6,16 +6,7 @@ type User struct {
 	Password string `db:"password"`
 	Avatar   string `db:"avatar"`
 	Online   bool   `db:"-"`
-}
-
-type Group struct {
-	ID       int
-	Nickname string
-	Owner    int
-	Members  []int
-
-	ownerUser  *User
-	memberUser []*User
+	Group    bool
 }
 
 type ReqLogin struct {
@@ -30,7 +21,8 @@ type RespLogin struct {
 
 type ReqChatTextP2P struct {
 	Type    string
-	From    int
+	Sender  int // 发送者
+	From    int // 群id/发送者id
 	To      int
 	Content string
 }

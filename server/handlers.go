@@ -1,7 +1,12 @@
 package main
 
+func onPing(conn *WsConn, pkg *Package) error {
+	return nil
+}
+
 func onLogin(conn *WsConn, pkg *Package) error {
 	msg := &ReqLogin{}
+
 	if err := pkg.Bind(msg); err != nil {
 		return err
 	}

@@ -95,12 +95,12 @@ func (this *Server) Stop() {
 	this.waitGroup.Wait()
 }
 
-func (this *Server) Broadcast(route, msg interface{}) {
+func (this *Server) Broadcast(route, msg interface{}, data []byte) {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 
 	for _, p := range this.conns {
-		p.Send(route, msg, nil)
+		p.Send(route, msg, data)
 	}
 }
 

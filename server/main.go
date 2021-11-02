@@ -33,6 +33,7 @@ func main() {
 	e.GET("/downFile", handleDownFile)
 
 	dispatcher.Add("login", onLogin)
+	dispatcher.Add("ping", onPing)
 	dispatcher.Add("chat.text", onChatText)
 	dispatcher.Add("chat.image", onChatImage)
 
@@ -79,7 +80,7 @@ func handleUpFile(c echo.Context) error {
 		return errors.New("args error")
 	}
 
-	fileUUID, err := uuid.NewV4()
+	fileUUID := uuid.NewV4()
 	if err != nil {
 		return err
 	}
