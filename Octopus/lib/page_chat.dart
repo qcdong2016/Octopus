@@ -24,6 +24,14 @@ class _ChatPageState extends State<ChatPage> {
       Data.data.addMessage(msg);
     }, false);
 
+    Client.instance.addHandler("friendOnline", (err, data) {
+      Data.data.setUserOnline(User.fromJson(data));
+    }, false);
+
+    Client.instance.addHandler("friendOffline", (err, data) {
+      Data.data.setUserOffline(data);
+    }, false);
+
     super.initState();
   }
 

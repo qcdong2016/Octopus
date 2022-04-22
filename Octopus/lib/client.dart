@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'data.dart';
 import 'websocket/websocket.dart';
 
 typedef CB = Function(String?, dynamic);
@@ -15,14 +16,13 @@ class Client {
   Timer? _timer;
 
   void login(String userid, String password) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    String? server = prefs.getString("server");
+    // String? server = prefs.getString("server");
     // server ??= "ws://192.168.2.191:7457";
-    server ??= "ws://127.0.0.1:7457";
 
     _webSocket?.close();
-    _webSocket = await WebSocket.connect(server + "/chat");
+    _webSocket = await WebSocket.connect(Data.server + "/chat");
 
     _webSocket?.stream.listen(dispatch);
 

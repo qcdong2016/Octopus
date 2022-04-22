@@ -58,18 +58,19 @@ class _LoginPageState extends State<LoginPage> {
                 showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      var opt = LineInput(
-                        hint: '服务器地址',
-                        icon: Icons.web,
-                      );
+                      var ctrl = TextEditingController(text: Data.server);
 
                       return AlertDialog(
-                        content: opt,
+                        content: LineInput(
+                          hint: '服务器地址',
+                          icon: Icons.web,
+                          controller: ctrl,
+                        ),
                         actions: <Widget>[
                           TextButton(
                             child: Text('设置'),
                             onPressed: () {
-                              print(opt.text);
+                              Data.server = ctrl.text;
                               Navigator.of(context).pop();
                             },
                           ),

@@ -42,43 +42,35 @@ class _ChatInputState extends State<ChatInput> {
           );
         }
       },
-      child: TextField(
-        controller: _controller,
-        keyboardType: TextInputType.multiline,
-        maxLines: 20,
-        decoration: const InputDecoration(
-          filled: true,
-          contentPadding: EdgeInsets.all(3),
-        ),
-        onSubmitted: (text) {
-          print(text);
+      child: DropTarget(
+        onDragDone: (detail) {
+          setState(() {
+            var file = detail.files[0].readAsBytes();
+            print(detail.files);
+          });
         },
+        onDragEntered: (detail) {
+          setState(() {
+            _dragging = true;
+          });
+        },
+        onDragExited: (detail) {
+          setState(() {
+            _dragging = false;
+          });
+        },
+        child: TextField(
+          controller: _controller,
+          keyboardType: TextInputType.multiline,
+          maxLines: 20,
+          decoration: InputDecoration(
+            filled: true,
+            contentPadding: EdgeInsets.all(3),
+            fillColor:
+                _dragging ? Color.fromARGB(255, 184, 238, 255) : Colors.white,
+          ),
+        ),
       ),
     );
-    // DropTarget(
-    //   onDragDone: (detail) {
-    //     setState(() {
-    //       print(detail.files[0]);
-    //     });
-    //   },
-    //   onDragEntered: (detail) {
-    //     setState(() {
-    //       _dragging = true;
-    //     });
-    //   },
-    //   onDragExited: (detail) {
-    //     setState(() {
-    //       _dragging = false;
-    //     });
-    //   },
-    //   child: Container(
-    //     height: 200,
-    //     width: 200,
-    //     color: _dragging ? Colors.blue.withOpacity(0.4) : Colors.black26,
-    //     child: _list.isEmpty
-    //         ? const Center(child: Text("Drop here"))
-    //         : Text(_list.join("\n")),
-    //   ),
-    // );
   }
 }
