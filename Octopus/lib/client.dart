@@ -64,7 +64,7 @@ class Client {
 
     if (msg["cbid"] != null) {
       var cb = takeCB(msg["cbid"]);
-      cb!(msg.err, data);
+      cb!(msg["err"], data);
     }
 
     var route = msg['route'];

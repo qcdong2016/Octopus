@@ -23,11 +23,11 @@ class _FriendItem extends State<FriendItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Data.data.chatTarget = widget._user.iD;
+        Data.data.chatTarget = widget._user;
       },
       child: Container(
         height: 50,
-        color: Data.data.chatTarget == widget._user.iD
+        color: Data.data.chatTarget == widget._user
             ? Colors.grey.shade300
             : Colors.white,
         child: Row(
