@@ -1,5 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:octopus/event/event.dart';
+import 'package:octopus/event/event_widget.dart';
 
 import 'data.dart';
 import 'friend_item.dart';
@@ -26,7 +28,11 @@ class _FriendList extends State<FriendList> {
         controller: _pageScrollerController,
         itemCount: Data.data.friends.length,
         itemBuilder: (BuildContext context, int index) {
-          return FriendItem(index: Data.data.friends[index]);
+          var user = Data.data.friends[index];
+          return EventWidget(
+            buidler: ((context) => FriendItem(user: user)),
+            event: MultiEvent(list: [user, Data.data]),
+          );
         },
       ),
     );

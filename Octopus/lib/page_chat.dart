@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:octopus/client.dart';
+import 'package:octopus/data.dart';
 import 'package:octopus/friend_list.dart';
 
 import 'chat_input.dart';
@@ -12,6 +14,23 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    Client.instance.addHandler("chat.text", (err, data) {
+      Message msg = Message.fromJson(data);
+      Data.data.addMessage(msg);
+    }, false);
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

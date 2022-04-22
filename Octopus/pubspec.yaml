@@ -39,6 +39,7 @@ dependencies:
   desktop_drop: ^0.3.3
   bubble: ^1.2.1
   badges: ^2.0.2
+  provider: ^6.0.2
 
 dev_dependencies:
   flutter_test:

@@ -8,22 +8,36 @@ import 'websocket/websocket.dart';
 typedef CB = Function(String?, dynamic);
 
 class Client {
-  Client._privateConstructor();
-
-  static final Client instance = Client._privateConstructor();
+  static final Client instance = Client();
 
   WebSocket? _webSocket;
+
+  Timer? _timer;
 
   void login(String userid, String password) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String? server = prefs.getString("server");
-    server ??= "ws://192.168.2.191:7457";
+    // server ??= "ws://192.168.2.191:7457";
+    server ??= "ws://127.0.0.1:7457";
 
     _webSocket?.close();
     _webSocket = await WebSocket.connect(server + "/chat");
 
     _webSocket?.stream.listen(dispatch);
+
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+      // print([
+      //   "object",
+      //   _webSocket != null,
+      //   _webSocket!.readyState,
+      //   _webSocket!.state_open
+      // ]);
+      if (_webSocket != null &&
+          _webSocket!.readyState == _webSocket!.state_open) {
+        doSend("ping", {}, log: false);
+      }
+    });
 
     doSend("login", {
       "ID": int.parse(userid),
@@ -35,25 +49,11 @@ class Client {
     instance.doSend(route, data, cb: cb);
   }
 
-  late Timer _timer;
-
-  void tick() {
-    const timeInterval = const Duration(seconds: 1);
-
-    _timer = Timer.periodic(timeInterval, (timer) {
-      if (_webSocket != null &&
-          _webSocket!.readyState == _webSocket!.state_connecting) {
-        // _webSocket.ping();
-      }
-    });
-  }
-
   dispatch(dynamic message) {
     var index = message.indexOf("}");
     var msg = jsonDecode(message.substring(0, index + 1));
 
     print(["recv", message]);
-    print(msg);
 
     if (msg["err"] != null) {
       // msgBox.show(msg.err);
@@ -96,8 +96,11 @@ class Client {
     return _handler[key];
   }
 
-  doSend(String route, data, {CB? cb}) {
+  doSend(String route, data, {CB? cb, bool? log}) {
     var pk = pack(route, data, cb: cb);
+    if (log == null || log == true) {
+      print(['send', pk]);
+    }
     _webSocket?.add(pk);
   }
 
@@ -114,7 +117,6 @@ class Client {
     pkg["argsSize"] = args.length;
 
     var txt = jsonEncode(pkg) + args;
-    print(["send", txt]);
     return txt;
   }
 
