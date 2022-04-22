@@ -22,8 +22,11 @@ class Data {
   static Future<void> init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? svr = prefs.getString("server");
-
-    svr ??= "ws://127.0.0.1:7457";
+    if (svr == null) {
+      svr = "ws://127.0.0.1:7457";
+      server = svr;
+      save();
+    }
 
     server = svr;
   }

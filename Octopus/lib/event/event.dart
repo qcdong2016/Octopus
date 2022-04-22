@@ -26,7 +26,6 @@ class EventList extends EventBase {
 
   @override
   EventBlock connect(Callback cb) {
-    print('connect');
     var block = SingleEventBlock(cb: cb);
     _list.add(block);
 
@@ -35,7 +34,6 @@ class EventList extends EventBase {
 
   @override
   void disconnect(EventBlock? block) {
-    print('disconnect');
     if (block == null) {
       return;
     }

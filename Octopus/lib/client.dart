@@ -16,23 +16,12 @@ class Client {
   Timer? _timer;
 
   void login(String userid, String password) async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // String? server = prefs.getString("server");
-    // server ??= "ws://192.168.2.191:7457";
-
     _webSocket?.close();
     _webSocket = await WebSocket.connect(Data.server + "/chat");
 
     _webSocket?.stream.listen(dispatch);
 
     _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
-      // print([
-      //   "object",
-      //   _webSocket != null,
-      //   _webSocket!.readyState,
-      //   _webSocket!.state_open
-      // ]);
       if (_webSocket != null &&
           _webSocket!.readyState == _webSocket!.state_open) {
         doSend("ping", {}, log: false);
