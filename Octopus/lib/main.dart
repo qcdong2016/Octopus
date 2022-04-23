@@ -4,6 +4,7 @@ import 'package:octopus/page_chat.dart';
 import 'chat_input.dart';
 import 'data.dart';
 import 'friend_list.dart';
+import 'message_item_file.dart';
 import 'message_list.dart';
 import 'page_login.dart';
 

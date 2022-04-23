@@ -22,7 +22,7 @@ class Client {
     // server ??= "ws://192.168.2.191:7457";
 
     _webSocket?.close();
-    _webSocket = await WebSocket.connect(Data.server + "/chat");
+    _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
 
     _webSocket?.stream.listen(dispatch);
 
@@ -40,7 +40,7 @@ class Client {
     });
 
     doSend("login", {
-      "ID": int.parse(userid),
+      "ID": userid,
       "Password": password,
     });
   }

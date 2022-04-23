@@ -1,17 +1,18 @@
 import 'package:bubble/bubble.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:octopus/message_item_file.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'data.dart';
 
 class MessageItem extends StatefulWidget {
   MessageItem({
     Key? key,
-    required this.isLeft,
-    required this.content,
+    required this.msg,
   }) : super(key: key);
 
-  bool isLeft = false;
-  String content = "";
+  Message msg;
 
   @override
   State<MessageItem> createState() => _MessageItemState();
@@ -48,6 +49,13 @@ class _MessageItemState extends State<MessageItem> {
   static const selfBubbleColor = Color.fromARGB(255, 183, 232, 250);
   static const otherBubbleColor = Color.fromARGB(255, 188, 250, 236);
 
+  Widget _createFile(bool isLeft) {
+    return FileMessageItem(
+      alignment: isLeft ? Alignment.topLeft : Alignment.topRight,
+      msg: widget.msg,
+    );
+  }
+
   Widget _createLeft({required String msg}) {
     return Bubble(
       margin: BubbleEdges.only(top: 10),
@@ -75,10 +83,14 @@ class _MessageItemState extends State<MessageItem> {
 //           ),
   @override
   Widget build(BuildContext context) {
-    if (widget.isLeft)
-      return _createLeft(msg: widget.content);
+    if (widget.msg.type == "file") {
+      return _createFile(widget.msg.from == Data.data.me.iD);
+    }
+
+    if (widget.msg.from == Data.data.me.iD)
+      return _createLeft(msg: widget.msg.content);
     else
-      return _createRight(msg: widget.content);
+      return _createRight(msg: widget.msg.content);
   }
 
   //图文混排

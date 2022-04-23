@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/qcdong2016/logs"
 )
 
 type MsgHandler interface {
@@ -56,7 +57,7 @@ func (this *Server) onNewConnection(w http.ResponseWriter, r *http.Request) erro
 	connection := NewWsConn(conn, this)
 	defer connection.Close()
 
-	logger.Info("ws.from", "IP", connection.IP)
+	logs.Info("ws.from", "IP", connection.IP)
 
 	this.waitGroup.Add(1)
 	connection.Pump()
@@ -67,7 +68,7 @@ func (this *Server) onNewConnection(w http.ResponseWriter, r *http.Request) erro
 		this.BroadcastExcept("friendOffline", connection.UserID, connection.UserID)
 	}
 
-	logger.Info("ws.close", "IP", connection.IP)
+	logs.Info("ws.close", "IP", connection.IP)
 	this.waitGroup.Done()
 
 	return nil
