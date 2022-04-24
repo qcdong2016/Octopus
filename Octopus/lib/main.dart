@@ -20,10 +20,10 @@ class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<LoginPage> {
+class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     initSystemTray();
@@ -37,8 +37,6 @@ class _MyAppState extends State<LoginPage> {
   Future<void> initSystemTray() async {
     String path =
         Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png';
-
-    List<String> iconList = ['darts_icon', 'gift_icon'];
 
     final menu = [
       MenuItem(label: 'Show', onClicked: _appWindow.show),
@@ -60,13 +58,14 @@ class _MyAppState extends State<LoginPage> {
     // handle system tray event
     _systemTray.registerSystemTrayEventHandler((eventName) {
       debugPrint("eventName: $eventName");
-      _systemTray.popUpContextMenu();
 
-      // if (eventName == "leftMouseDown") {
-      // } else if (eventName == "leftMouseUp") {
-      // } else if (eventName == "rightMouseDown") {
-      // } else if (eventName == "rightMouseUp") {
-      // }
+      if (eventName == "leftMouseDown") {
+      } else if (eventName == "leftMouseUp") {
+        _appWindow.show();
+      } else if (eventName == "rightMouseDown") {
+      } else if (eventName == "rightMouseUp") {
+        _systemTray.popUpContextMenu();
+      }
     });
   }
 

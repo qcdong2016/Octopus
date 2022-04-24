@@ -49,30 +49,29 @@ class _MessageItemState extends State<MessageItem> {
   static const selfBubbleColor = Color.fromARGB(255, 183, 232, 250);
   static const otherBubbleColor = Color.fromARGB(255, 188, 250, 236);
 
-  Widget _createFile(bool isLeft) {
+  Widget _createFile() {
     return FileMessageItem(
-      alignment: isLeft ? Alignment.topLeft : Alignment.topRight,
       msg: widget.msg,
     );
   }
 
-  Widget _createLeft({required String msg}) {
+  Widget _createLeft({required Widget child}) {
     return Bubble(
       margin: BubbleEdges.only(top: 10),
       alignment: Alignment.topLeft,
       nip: BubbleNip.leftTop,
       color: otherBubbleColor,
-      child: getRichText(msg),
+      child: child,
     );
   }
 
-  Widget _createRight({required String msg}) {
+  Widget _createRight({required Widget child}) {
     return Bubble(
       margin: BubbleEdges.only(top: 10),
       alignment: Alignment.topRight,
       nip: BubbleNip.rightTop,
       color: selfBubbleColor,
-      child: getRichText(msg),
+      child: child,
     );
   }
 
@@ -83,14 +82,17 @@ class _MessageItemState extends State<MessageItem> {
 //           ),
   @override
   Widget build(BuildContext context) {
+    late Widget child;
     if (widget.msg.type == "file") {
-      return _createFile(widget.msg.from == Data.data.me.iD);
+      child = _createFile();
+    } else {
+      child = getRichText(widget.msg.content);
     }
 
-    if (widget.msg.from == Data.data.me.iD)
-      return _createLeft(msg: widget.msg.content);
+    if (widget.msg.from != Data.data.me.iD)
+      return _createLeft(child: child);
     else
-      return _createRight(msg: widget.msg.content);
+      return _createRight(child: child);
   }
 
   //图文混排

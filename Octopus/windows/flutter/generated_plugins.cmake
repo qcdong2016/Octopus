@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   screen_capturer
   system_tray
-  tray_manager
   url_launcher_windows
 )
 

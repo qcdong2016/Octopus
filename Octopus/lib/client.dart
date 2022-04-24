@@ -3,8 +3,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data.dart';
 import 'websocket/websocket.dart';
@@ -41,14 +42,46 @@ class Client {
     instance.doSend(route, data, cb: cb);
   }
 
-  static sendFile(String type, String filename,
+  static downFile(Message msg) async {
+    String? result = await FilePicker.platform.saveFile(
+      fileName: msg.filename,
+      dialogTitle: "保存文件",
+      lockParentWindow: true,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    if (msg.downloading) {
+      return;
+    }
+
+    msg.downloading = true;
+
+    var url = "http://${Data.server}/downFile?file=${msg.url}";
+    Response response =
+        await Dio().download(url, result, onReceiveProgress: (received, total) {
+      msg.progress = received / total;
+    });
+
+    msg.downloading = false;
+
+    if (response.statusCode != 200) {
+      SmartDialog.showToast('下载失败');
+    } else {
+      print("成功");
+    }
+  }
+
+  static Future<Message?> sendFile(String type, String filename,
       {void Function(int, int)? progress}) async {
     var from = Data.data.me.iD;
     var to = Data.data.chatTarget.iD;
     var url = "http://${Data.server}/upFile?from=${from}&to=${to}";
 
     if (!File.fromUri(Uri.parse(filename)).existsSync()) {
-      return;
+      return null;
     }
 
     var pf =
@@ -56,9 +89,23 @@ class Client {
     var formData = FormData.fromMap({
       'file': pf,
     });
+
+    var msg = Message.fromJson({
+      "Type": type,
+      "From": from,
+      "To": to,
+      "FileName": basename(filename),
+      "URL": "",
+    });
+    Data.data.addMessage(msg);
+
     var response =
-        await Dio().post(url, data: formData, onSendProgress: progress);
+        await Dio().post(url, data: formData, onSendProgress: (count, total) {
+      msg.progress = count / total;
+    });
     print(["http", response]);
+
+    return msg;
   }
 
   dispatch(dynamic message) {
