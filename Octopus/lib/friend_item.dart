@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:octopus/data.dart';
 import 'package:badges/badges.dart';
-import 'package:provider/provider.dart';
 
 import 'avatar.dart';
 
