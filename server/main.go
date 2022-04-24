@@ -8,18 +8,32 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/labstack/echo"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"github.com/qcdong2016/logs"
 )
 
 var (
-	logger  *Logger
 	server  *Server
 	dataMgr *DataManager
 )
 
+func CrossOrigin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Add("Access-Control-Allow-Origin", "*")
+		c.Response().Header().Add("Access-Control-Allow-Methods", "*")
+		c.Response().Header().Add("Access-Control-Allow-Headers", "*")
+		c.Response().Header().Add("Access-Control-Allow-Credentials", "true")
+
+		if c.Request().Method == http.MethodOptions {
+			return c.JSON(http.StatusOK, "ok")
+		}
+
+		return next(c)
+	}
+}
+
 func main() {
-	logger = NewLogger()
 	server = NewServer()
 	dataMgr = NewDataManager()
 
@@ -27,9 +41,9 @@ func main() {
 
 	e.Debug = true
 
-	e.POST("/regist", handleRegist)
+	e.Any("/regist", handleRegist, CrossOrigin)
 	e.GET("/chat", handleChat)
-	e.POST("/upFile", handleUpFile)
+	e.POST("/upFile", handleUpFile, CrossOrigin)
 	e.GET("/downFile", handleDownFile)
 
 	dispatcher.Add("login", onLogin)
@@ -51,6 +65,16 @@ func handleRegist(c echo.Context) error {
 	if err := c.Bind(&arg); err != nil {
 		return err
 	}
+
+	if arg.Nickname == "" || arg.Password == "" {
+		return errors.New("empty")
+	}
+
+	if arg.Avatar == "" {
+		arg.Avatar = RandAvatar(arg.Nickname)
+	}
+
+	logs.Info("regist", arg)
 
 	u, err := dataMgr.Regist(arg.Nickname, arg.Password, arg.Avatar)
 	if err != nil {
@@ -80,12 +104,12 @@ func handleUpFile(c echo.Context) error {
 		return errors.New("args error")
 	}
 
-	fileUUID := uuid.NewV4()
+	fileUUID := uuid.NewString()
 	if err != nil {
 		return err
 	}
 
-	relPath := filepath.Join("files", from, fileUUID.String()+filepath.Ext(formFile.Filename))
+	relPath := filepath.Join("files", from, fileUUID+filepath.Ext(formFile.Filename))
 	absPath := filepath.Join(".", relPath)
 
 	err = os.MkdirAll(filepath.Dir(absPath), os.ModePerm)
@@ -116,16 +140,20 @@ func handleUpFile(c echo.Context) error {
 	}
 
 	user := server.Get(toUserId)
-	if user != nil {
-		user.Send("chat.file", &FileMsg{
-			From:     fromUserId,
-			To:       toUserId,
-			FileName: formFile.Filename,
-			URL:      relPath,
-		}, nil)
+
+	msg := &FileMsg{
+		Type:     "file",
+		From:     fromUserId,
+		To:       toUserId,
+		FileName: formFile.Filename,
+		URL:      relPath,
 	}
 
-	return nil
+	if user != nil {
+		user.Send("chat.file", msg, nil)
+	}
+
+	return c.JSON(http.StatusOK, msg)
 }
 
 func handleDownFile(c echo.Context) error {

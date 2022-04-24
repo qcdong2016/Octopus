@@ -17,7 +17,7 @@ class Client {
 
   void login(String userid, String password) async {
     _webSocket?.close();
-    _webSocket = await WebSocket.connect(Data.server + "/chat");
+    _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
 
     _webSocket?.stream.listen(dispatch);
 
@@ -29,7 +29,7 @@ class Client {
     });
 
     doSend("login", {
-      "ID": int.parse(userid),
+      "ID": userid,
       "Password": password,
     });
   }

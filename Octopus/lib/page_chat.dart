@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/friend_list.dart';
@@ -17,15 +16,18 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
-    // TODO: implement initState
-
     Client.instance.addHandler("chat.text", (err, data) {
       Message msg = Message.fromJson(data);
       Data.data.addMessage(msg);
     }, false);
 
+    Client.instance.addHandler("chat.file", (err, data) {
+      Message msg = Message.fromJson(data);
+      Data.data.addMessage(msg);
+    }, false);
+
     Client.instance.addHandler("friendOnline", (err, data) {
-      Data.data.setUserOnline(User.fromJson(data));
+      Data.data.setUserOnline(User().fromJson(data));
     }, false);
 
     Client.instance.addHandler("friendOffline", (err, data) {
@@ -62,6 +64,43 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   height: 1,
                   color: Colors.grey,
+                ),
+                Container(
+                  height: 40,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 10,
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.tag_faces),
+                        iconSize: 30,
+                        color: Colors.grey,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        onPressed: () {},
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.crop_original),
+                        iconSize: 30,
+                        color: Colors.grey,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        onPressed: () {},
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.folder_open),
+                        iconSize: 30,
+                        color: Colors.grey,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                   height: 150,

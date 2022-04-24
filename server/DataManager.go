@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -124,12 +125,33 @@ func (d *DataManager) Get(id int) *User {
 	return nil
 }
 
+func (d *DataManager) findUserByNick(nick string) *User {
+	for _, u := range d.users {
+		if u.Nickname == nick {
+			return u
+		}
+	}
+	return nil
+}
+
 func (d *DataManager) Login(msg *ReqLogin) (*User, error) {
 
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	u, ok := d.users[msg.ID]
+	var userid int = -1
+
+	switch val := msg.ID.(type) {
+	case float64:
+		userid = int(val)
+	case string:
+		u := d.findUserByNick(strings.TrimSpace(val))
+		if u != nil {
+			userid = u.ID
+		}
+	}
+
+	u, ok := d.users[userid]
 	if !ok {
 		return nil, errors.New("用户不存在")
 	}

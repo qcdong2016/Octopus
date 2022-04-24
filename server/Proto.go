@@ -10,7 +10,7 @@ type User struct {
 }
 
 type ReqLogin struct {
-	ID       int
+	ID       interface{}
 	Password string
 }
 
@@ -39,6 +39,7 @@ type RespChatTextP2P struct {
 }
 
 type FileMsg struct {
+	Type     string
 	From     int
 	To       int
 	URL      string

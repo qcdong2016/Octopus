@@ -2,16 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"net"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
-)
-
-var (
-	UseClosedConn = errors.New("use closed conn")
+	"github.com/qcdong2016/logs"
 )
 
 const (
@@ -155,15 +151,15 @@ func (this *WsConn) readPump() {
 
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-				logger.Debug("ws.read", "error", "client side closed socket.", "ip", this.IP)
+				logs.Debug("ws.read", "error", "client side closed socket.", "ip", this.IP)
 			} else if e, ok := err.(net.Error); ok && !e.Temporary() {
-				logger.Debug("ws.read", "error", err.Error(), "ip", this.IP)
+				logs.Debug("ws.read", "error", err.Error(), "ip", this.IP)
 			}
 
 			return
 		} else {
 			if err := this.handler.OnRecv(this, buf); err != nil {
-				logger.Error("ws.recv", "error", err.Error(), "ip", this.IP)
+				logs.Error("ws.recv", "error", err.Error(), "ip", this.IP)
 				return
 			}
 		}
@@ -185,7 +181,7 @@ func (this *WsConn) writePump() {
 
 		case <-authTicker.C:
 			if this.authFlag != 1 {
-				logger.Debug("ws.authTicker", "ip", this.IP)
+				logs.Debug("ws.authTicker", "ip", this.IP)
 				return
 			}
 			authTicker.Stop()
@@ -198,9 +194,9 @@ func (this *WsConn) writePump() {
 
 			if msg.Error != nil {
 				if websocket.IsCloseError(msg.Error, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					logger.Debug("ws.send", "error", "client side closed socket", "ip", this.IP)
+					logs.Debug("ws.send", "error", "client side closed socket", "ip", this.IP)
 				} else {
-					logger.Debug("ws.send", "error", msg.Error.Error(), "ip", this.IP)
+					logs.Debug("ws.send", "error", msg.Error.Error(), "ip", this.IP)
 				}
 			}
 		}

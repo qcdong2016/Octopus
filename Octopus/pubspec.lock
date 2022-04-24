@@ -85,6 +85,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.3"
+  dio:
+    dependency: "direct main"
+    description:
+      name: dio
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.6"
   fake_async:
     dependency: transitive
     description:
@@ -106,6 +113,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.2"
+  file_icon:
+    dependency: "direct main"
+    description:
+      name: file_icon
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -128,6 +142,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  http:
+    dependency: "direct main"
+    description:
+      name: http
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.13.4"
+  http_parser:
+    dependency: transitive
+    description:
+      name: http_parser
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   js:
     dependency: transitive
     description:

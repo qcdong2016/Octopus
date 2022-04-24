@@ -27,10 +27,7 @@ class _MessageListState extends State<MessageList> {
             itemCount: list.length,
             itemBuilder: (context, index) {
               var one = list[index];
-              return MessageItem(
-                isLeft: one.from != Data.data.me.iD,
-                content: one.content,
-              );
+              return MessageItem(msg: one);
             },
           );
         },
