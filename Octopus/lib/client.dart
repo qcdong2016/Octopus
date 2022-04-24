@@ -74,21 +74,31 @@ class Client {
     }
   }
 
-  static Future<Message?> sendFile(String type, String filename,
-      {void Function(int, int)? progress}) async {
-    var from = Data.data.me.iD;
-    var to = Data.data.chatTarget.iD;
-    var url = "http://${Data.server}/upFile?from=${from}&to=${to}";
-
-    if (!File.fromUri(Uri.parse(filename)).existsSync()) {
-      return null;
-    }
+  static _doSendFile(String type, String filename, Message msg) async {
+    var url =
+        "http://${Data.server}/upFile?from=${msg.from}&to=${msg.to}&type={$type}";
 
     var pf =
         await MultipartFile.fromFile(filename, filename: basename(filename));
     var formData = FormData.fromMap({
       'file': pf,
     });
+
+    var response =
+        await Dio().post(url, data: formData, onSendProgress: (count, total) {
+      msg.progress = count / total;
+    });
+
+    msg.url = response.data["URL"];
+  }
+
+  static sendFile(String type, String filename) async {
+    if (!File.fromUri(Uri.parse(filename)).existsSync()) {
+      return null;
+    }
+
+    var from = Data.data.me.iD;
+    var to = Data.data.chatTarget.iD;
 
     var msg = Message.fromJson({
       "Type": type,
@@ -97,13 +107,14 @@ class Client {
       "FileName": basename(filename),
       "URL": "",
     });
-    Data.data.addMessage(msg);
 
-    var response =
-        await Dio().post(url, data: formData, onSendProgress: (count, total) {
-      msg.progress = count / total;
-    });
-    print(["http", response]);
+    if (type == "image") {
+      await _doSendFile(type, filename, msg);
+    } else {
+      _doSendFile(type, filename, msg);
+    }
+
+    Data.data.addMessage(msg);
 
     return msg;
   }
@@ -116,7 +127,8 @@ class Client {
 
     if (msg["err"] != null) {
       // msgBox.show(msg.err);
-      print(msg["err"]);
+      return SmartDialog.showToast(msg["err"]);
+      // print(msg["err"]);
     }
 
     var data = jsonDecode(message.substring(index + 1));

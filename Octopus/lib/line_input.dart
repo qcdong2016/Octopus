@@ -50,7 +50,7 @@ class _LineInput extends State<LineInput> {
               border: InputBorder.none,
               suffixIcon: GestureDetector(
                 child: Offstage(
-                  child: Icon(Icons.clear),
+                  child: const Icon(Icons.clear),
                   offstage: widget._controller.text == "",
                 ),
                 onTap: () {

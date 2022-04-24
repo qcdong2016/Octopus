@@ -141,8 +141,13 @@ func handleUpFile(c echo.Context) error {
 
 	user := server.Get(toUserId)
 
+	msgType := c.QueryParam("type")
+	if msgType == "" {
+		msgType = "file"
+	}
+
 	msg := &FileMsg{
-		Type:     "file",
+		Type:     msgType,
 		From:     fromUserId,
 		To:       toUserId,
 		FileName: formFile.Filename,

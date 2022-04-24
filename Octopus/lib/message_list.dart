@@ -14,7 +14,6 @@ class MessageList extends StatefulWidget {
 }
 
 class _MessageListState extends State<MessageList> {
-  ScrollController _pageScrollerController = ScrollController();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -24,6 +23,7 @@ class _MessageListState extends State<MessageList> {
           var list = Data.data.getMessage(Data.data.chatTarget.iD);
 
           return ListView.builder(
+            controller: Data.data.pageScrollerController,
             itemCount: list.length,
             itemBuilder: (context, index) {
               var one = list[index];

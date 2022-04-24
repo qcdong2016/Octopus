@@ -68,7 +68,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
                     progressColor: Colors.green,
                   );
                 } else {
-                  return Icon(
+                  return const Icon(
                     Icons.download,
                     size: 20.0,
                   );

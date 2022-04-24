@@ -55,6 +55,16 @@ class _MessageItemState extends State<MessageItem> {
     );
   }
 
+  Widget _createImage() {
+    return Container(
+      constraints: BoxConstraints(maxHeight: 500, maxWidth: 500),
+      child: Image(
+        image: NetworkImage(
+            "http://${Data.server}/downFile?file=${widget.msg.url}"),
+      ),
+    );
+  }
+
   Widget _createLeft({required Widget child}) {
     return Bubble(
       margin: BubbleEdges.only(top: 10),
@@ -85,6 +95,8 @@ class _MessageItemState extends State<MessageItem> {
     late Widget child;
     if (widget.msg.type == "file") {
       child = _createFile();
+    } else if (widget.msg.type == "image") {
+      child = _createImage();
     } else {
       child = getRichText(widget.msg.content);
     }

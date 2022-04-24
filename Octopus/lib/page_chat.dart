@@ -71,7 +71,7 @@ class _ChatPageState extends State<ChatPage> {
                 width: 10,
               ),
               IconButton(
-                icon: Icon(Icons.tag_faces),
+                icon: const Icon(Icons.tag_faces),
                 iconSize: 30,
                 color: Colors.grey,
                 splashColor: Colors.transparent,
@@ -80,7 +80,7 @@ class _ChatPageState extends State<ChatPage> {
                 onPressed: () {},
               ),
               IconButton(
-                icon: Icon(Icons.cut),
+                icon: const Icon(Icons.cut),
                 iconSize: 30,
                 color: Colors.grey,
                 splashColor: Colors.transparent,
@@ -112,7 +112,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.crop_original),
+                icon: const Icon(Icons.crop_original),
                 iconSize: 30,
                 color: Colors.grey,
                 splashColor: Colors.transparent,
@@ -130,7 +130,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.folder_open),
+                icon: const Icon(Icons.folder_open),
                 iconSize: 30,
                 color: Colors.grey,
                 splashColor: Colors.transparent,
