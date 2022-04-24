@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/data.dart';
@@ -22,6 +20,16 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    Data.init(() {
+      _usernameController.text = Data.data.me.nickname;
+      _passwordController.text = Data.data.me.password;
+    });
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Center(
@@ -29,8 +37,6 @@ class _LoginPageState extends State<LoginPage> {
             width: 400,
             child: EventWidget(
               buidler: (context) {
-                _usernameController.text = Data.data.me.nickname;
-                _passwordController.text = Data.data.me.password;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -189,6 +195,7 @@ class _LoginPageState extends State<LoginPage> {
               _usernameController.text.trim(), _passwordController.text.trim());
           Client.instance.addHandler("login", (err, data) {
             Data.data.fromJson(data);
+            Data.setUP(_usernameController.text, _passwordController.text);
             Navigator.of(context).pushNamed("/chat");
           }, true);
         },

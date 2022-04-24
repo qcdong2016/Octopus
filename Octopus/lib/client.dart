@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data.dart';
@@ -36,6 +39,26 @@ class Client {
 
   static send(String route, data, {CB? cb}) {
     instance.doSend(route, data, cb: cb);
+  }
+
+  static sendFile(String type, String filename,
+      {void Function(int, int)? progress}) async {
+    var from = Data.data.me.iD;
+    var to = Data.data.chatTarget.iD;
+    var url = "http://${Data.server}/upFile?from=${from}&to=${to}";
+
+    if (!File.fromUri(Uri.parse(filename)).existsSync()) {
+      return;
+    }
+
+    var pf =
+        await MultipartFile.fromFile(filename, filename: basename(filename));
+    var formData = FormData.fromMap({
+      'file': pf,
+    });
+    var response =
+        await Dio().post(url, data: formData, onSendProgress: progress);
+    print(["http", response]);
   }
 
   dispatch(dynamic message) {

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'event/event.dart';
@@ -29,13 +28,27 @@ class Data {
     data.me.emit();
   }
 
-  static Future<void> init() async {
+  static Future<void> init(fn) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? svr = prefs.getString("server");
 
-    svr ??= "127.0.0.1:7457";
+    if (svr == null || svr == "") {
+      svr = "127.0.0.1:7457";
+    }
 
     server = svr;
+
+    String? nickname = prefs.getString("nickname");
+    String? password = prefs.getString("password");
+    if (nickname != null) {
+      data.me.nickname = nickname;
+    }
+
+    if (password != null) {
+      data.me.password = password;
+    }
+
+    fn();
   }
 }
 
