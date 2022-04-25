@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class _ChatInputState extends State<ChatInput> {
             },
             cb: (err, data) {
               _controller.text = "";
-              Data.data.addMessage(Message.fromJson(data));
+              Data.data.addMessage(Message().fromJson(data));
             },
           );
         }
@@ -45,7 +46,9 @@ class _ChatInputState extends State<ChatInput> {
         onDragDone: (detail) {
           setState(() async {
             var file = detail.files[0];
-            Client.sendFile("file", file.path);
+            if (File(file.path).existsSync()) {
+              Client.sendFile("file", file.path);
+            }
           });
         },
         onDragEntered: (detail) {

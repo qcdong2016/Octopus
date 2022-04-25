@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:path/path.dart';
 
@@ -19,23 +20,42 @@ class Client {
 
   Timer? _timer;
 
+  int retryCount = 0;
+
   void login(String userid, String password) async {
-    _webSocket?.close();
-    _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
-
-    _webSocket?.stream.listen(dispatch);
-
     _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_webSocket != null &&
-          _webSocket!.readyState == _webSocket!.state_open) {
+      if (_webSocket == null) {
+        return;
+      }
+
+      if (_webSocket!.readyState == _webSocket!.state_open) {
         doSend("ping", {}, log: false);
+      } else if (_webSocket!.readyState == _webSocket!.state_closed) {
+        if (retryCount == 0) {
+          SmartDialog.showLoading(
+              msg: "已掉线，重连中。。", background: Colors.black.withOpacity(0.5));
+        }
+        retryCount++;
+        _doLogin(userid, password);
       }
     });
+    _doLogin(userid, password);
+  }
 
-    doSend("login", {
-      "ID": userid,
-      "Password": password,
-    });
+  Future<void> _doLogin(String userid, String password) async {
+    _webSocket?.close();
+    try {
+      _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
+      _webSocket?.stream.listen(dispatch);
+      doSend("login", {
+        "ID": userid,
+        "Password": password,
+      });
+      if (retryCount != 0) {
+        SmartDialog.dismiss();
+      }
+      retryCount = 0;
+    } catch (e) {}
   }
 
   static send(String route, data, {CB? cb}) {
@@ -100,7 +120,7 @@ class Client {
     var from = Data.data.me.iD;
     var to = Data.data.chatTarget.iD;
 
-    var msg = Message.fromJson({
+    var msg = Message().fromJson({
       "Type": type,
       "From": from,
       "To": to,

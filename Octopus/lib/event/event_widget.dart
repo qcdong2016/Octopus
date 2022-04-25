@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:octopus/event/event.dart';
 
-typedef Builder = Widget Function(BuildContext context);
+typedef BuilderFunc = Widget Function(BuildContext context);
 
 class EventWidget extends StatefulWidget {
-  Builder buidler;
+  BuilderFunc buidler;
   EventBase event;
 
   EventWidget({Key? key, required this.buidler, required this.event})

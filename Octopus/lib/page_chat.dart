@@ -23,12 +23,12 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     Client.instance.addHandler("chat.text", (err, data) {
-      Message msg = Message.fromJson(data);
+      Message msg = Message().fromJson(data);
       Data.data.addMessage(msg);
     }, false);
 
     Client.instance.addHandler("chat.file", (err, data) {
-      Message msg = Message.fromJson(data);
+      Message msg = Message().fromJson(data);
       Data.data.addMessage(msg);
     }, false);
 
@@ -70,14 +70,18 @@ class _ChatPageState extends State<ChatPage> {
               SizedBox(
                 width: 10,
               ),
-              IconButton(
-                icon: const Icon(Icons.tag_faces),
-                iconSize: 30,
-                color: Colors.grey,
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                onPressed: () {},
+              Builder(
+                builder: (c) {
+                  return IconButton(
+                    icon: const Icon(Icons.tag_faces),
+                    iconSize: 30,
+                    color: Colors.grey,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    onPressed: () {},
+                  );
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.cut),

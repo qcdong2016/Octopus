@@ -2,13 +2,9 @@ package main
 
 import (
 	"errors"
-	"io"
 	"net/http"
-	"os"
 	"path/filepath"
-	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/qcdong2016/logs"
 )
@@ -86,79 +82,6 @@ func handleRegist(c echo.Context) error {
 
 func handleChat(c echo.Context) error {
 	return server.onNewConnection(c.Response(), c.Request())
-}
-
-func handleUpFile(c echo.Context) error {
-	formFile, err := c.FormFile("file")
-	if err != nil {
-		return err
-	}
-
-	reader, err := formFile.Open()
-	if err != nil {
-		return err
-	}
-
-	from := c.QueryParam("from")
-	if from == "" {
-		return errors.New("args error")
-	}
-
-	fileUUID := uuid.NewString()
-	if err != nil {
-		return err
-	}
-
-	relPath := filepath.Join("files", from, fileUUID+filepath.Ext(formFile.Filename))
-	absPath := filepath.Join(".", relPath)
-
-	err = os.MkdirAll(filepath.Dir(absPath), os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	destFile, err := os.Create(absPath)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	dataMgr.AddFile(absPath)
-
-	_, err = io.Copy(destFile, reader)
-	if err != nil {
-		return err
-	}
-
-	toUserId, err := strconv.Atoi(c.QueryParam("to"))
-	if err != nil {
-		return err
-	}
-	fromUserId, err := strconv.Atoi(from)
-	if err != nil {
-		return err
-	}
-
-	user := server.Get(toUserId)
-
-	msgType := c.QueryParam("type")
-	if msgType == "" {
-		msgType = "file"
-	}
-
-	msg := &FileMsg{
-		Type:     msgType,
-		From:     fromUserId,
-		To:       toUserId,
-		FileName: formFile.Filename,
-		URL:      relPath,
-	}
-
-	if user != nil {
-		user.Send("chat.file", msg, nil)
-	}
-
-	return c.JSON(http.StatusOK, msg)
 }
 
 func handleDownFile(c echo.Context) error {

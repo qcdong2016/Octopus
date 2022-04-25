@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
 
@@ -176,30 +177,34 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _getLoginButton() {
     return Container(
-      height: 50,
-      width: double.infinity,
-      margin: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.circular(4.0),
-      ),
-      child: TextButton(
-        style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-          backgroundColor:
-              MaterialStateProperty.all<Color>(Theme.of(context).primaryColor),
+        height: 50,
+        width: double.infinity,
+        margin: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor,
+          borderRadius: BorderRadius.circular(4.0),
         ),
-        child: const Text('登录'),
-        onPressed: () {
-          Client.instance.login(
-              _usernameController.text.trim(), _passwordController.text.trim());
-          Client.instance.addHandler("login", (err, data) {
-            Data.data.fromJson(data);
-            Data.setUP(_usernameController.text, _passwordController.text);
-            Navigator.of(context).pushNamed("/chat");
-          }, true);
-        },
-      ),
-    );
+        child: Builder(
+          builder: (context) {
+            return TextButton(
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                backgroundColor: MaterialStateProperty.all<Color>(
+                    Theme.of(context).primaryColor),
+              ),
+              child: const Text('登录'),
+              onPressed: () {
+                Client.instance.login(_usernameController.text.trim(),
+                    _passwordController.text.trim());
+                Client.instance.addHandler("login", (err, data) {
+                  Data.data.fromJson(data);
+                  Data.setUP(
+                      _usernameController.text, _passwordController.text);
+                  Navigator.of(context).pushNamed("/chat");
+                }, true);
+              },
+            );
+          },
+        ));
   }
 }

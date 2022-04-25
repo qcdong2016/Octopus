@@ -45,7 +45,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
             Container(
               height: 40,
               width: 40,
-              color: Color.fromARGB(255, 177, 251, 226),
+              color: Color.fromARGB(255, 251, 244, 176),
               child: FileIcon(
                 widget.msg.filename,
                 size: 30,
