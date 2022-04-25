@@ -43,7 +43,9 @@ class _MyAppState extends State<MyApp> {
       MenuItem(label: 'Hide', onClicked: _appWindow.hide),
       MenuItem(
         label: 'Exit',
-        onClicked: _appWindow.close,
+        onClicked: () {
+          exit(0);
+        },
       ),
     ];
 

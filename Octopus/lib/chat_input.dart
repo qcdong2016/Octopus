@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
+import 'package:pasteboard/pasteboard.dart';
+import 'package:flutter/services.dart';
 
 class ChatInput extends StatefulWidget {
   const ChatInput({Key? key}) : super(key: key);
@@ -22,11 +24,15 @@ class _ChatInputState extends State<ChatInput> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardListener(
+    return RawKeyboardListener(
       focusNode: FocusNode(),
-      onKeyEvent: (KeyEvent event) {
-        if (event.runtimeType == KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.enter) {
+      onKey: (RawKeyEvent event) async {
+        var typ = event.runtimeType.toString();
+        if (typ != "RawKeyDownEvent") {
+          return;
+        }
+
+        if (event.logicalKey == LogicalKeyboardKey.enter) {
           var msg = utf8.encode(_controller.text);
           var msg1 = base64Encode(msg);
           Client.send(
@@ -41,14 +47,17 @@ class _ChatInputState extends State<ChatInput> {
             },
           );
         }
+
+        if (event.logicalKey == LogicalKeyboardKey.keyV &&
+            (event.isControlPressed || event.isMetaPressed)) {
+          // 剪切板
+        }
       },
       child: DropTarget(
         onDragDone: (detail) {
-          setState(() async {
+          setState(() {
             var file = detail.files[0];
-            if (File(file.path).existsSync()) {
-              Client.sendFile("file", file.path);
-            }
+            Client.sendFile("file", file.path);
           });
         },
         onDragEntered: (detail) {
