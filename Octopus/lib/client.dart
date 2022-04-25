@@ -105,7 +105,7 @@ class Client {
 
   static _doSendFile(String type, String filename, Message msg) async {
     var url =
-        "http://${Data.server}/upFile?from=${msg.from}&to=${msg.to}&type={$type}";
+        "http://${Data.server}/upFile?from=${msg.from}&to=${msg.to}&type=$type";
 
     var pf =
         await MultipartFile.fromFile(filename, filename: basename(filename));
