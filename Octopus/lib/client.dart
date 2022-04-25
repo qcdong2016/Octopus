@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -122,7 +123,8 @@ class Client {
   }
 
   static sendFile(String type, String filename) async {
-    if (!File.fromUri(Uri.parse(filename)).existsSync()) {
+    if (!File.fromRawPath(Uint8List.fromList(filename.codeUnits))
+        .existsSync()) {
       return null;
     }
 
