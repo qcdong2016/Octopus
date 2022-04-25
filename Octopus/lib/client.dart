@@ -123,10 +123,10 @@ class Client {
   }
 
   static sendFile(String type, String filename) async {
-    if (!File.fromRawPath(Uint8List.fromList(filename.codeUnits))
-        .existsSync()) {
-      return null;
-    }
+    // if (!File.fromRawPath(Uint8List.fromList(filename.codeUnits))
+    //     .existsSync()) {
+    //   return null;
+    // }
 
     var from = Data.data.me.iD;
     var to = Data.data.chatTarget.iD;

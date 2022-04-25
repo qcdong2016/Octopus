@@ -92,7 +92,6 @@ class _ChatPageState extends State<ChatPage> {
                 highlightColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 onPressed: () async {
-                  if (Platform.isMacOS) {
                     Directory tempDir = await getTemporaryDirectory();
                     String imageName = '${tempDir.path}/_octopus_auto.jpg';
 
@@ -102,12 +101,11 @@ class _ChatPageState extends State<ChatPage> {
                       imagePath: imageName,
                     );
 
-                    if (capturedData != null) {
+                    if (capturedData == null) {
                       SmartDialog.showToast("错误");
                     } else {
                       Client.sendFile("image", imageName);
                     }
-                  }
                 },
               ),
               IconButton(
