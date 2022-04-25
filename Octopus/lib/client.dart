@@ -22,7 +22,9 @@ class Client {
 
   int retryCount = 0;
 
-  void login(String userid, String password) async {
+  void login(String nickname, String password) async {
+    Data.setUP(nickname, password);
+
     _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_webSocket == null) {
         return;
@@ -36,26 +38,33 @@ class Client {
               msg: "已掉线，重连中。。", background: Colors.black.withOpacity(0.5));
         }
         retryCount++;
-        _doLogin(userid, password);
+        _doLogin();
       }
     });
-    _doLogin(userid, password);
+    _doLogin();
   }
 
-  Future<void> _doLogin(String userid, String password) async {
+  void disconnect() {
+    _webSocket?.close();
+    _webSocket = null;
+  }
+
+  Future<void> _doLogin() async {
     _webSocket?.close();
     try {
       _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
       _webSocket?.stream.listen(dispatch);
       doSend("login", {
-        "ID": userid,
-        "Password": password,
+        "ID": Data.data.me.nickname,
+        "Password": Data.data.me.password,
       });
       if (retryCount != 0) {
         SmartDialog.dismiss();
       }
       retryCount = 0;
-    } catch (e) {}
+    } catch (e) {
+      print(e);
+    }
   }
 
   static send(String route, data, {CB? cb}) {
@@ -145,8 +154,13 @@ class Client {
 
     print(["recv", message]);
 
+    var route = msg['route'];
+
     if (msg["err"] != null) {
       // msgBox.show(msg.err);
+      if (route == "login") {
+        disconnect();
+      }
       return SmartDialog.showToast(msg["err"]);
       // print(msg["err"]);
     }
@@ -158,7 +172,6 @@ class Client {
       cb!(msg["err"], data);
     }
 
-    var route = msg['route'];
     if (route != null) {
       var cbinfo = getHandler(route);
       if (cbinfo == null) {
@@ -205,6 +218,7 @@ class Client {
     }
 
     var args = jsonEncode(data);
+    pkg["v"] = 2;
     pkg["argsSize"] = args.length;
 
     var txt = jsonEncode(pkg) + args;

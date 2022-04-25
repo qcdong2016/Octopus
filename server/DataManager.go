@@ -3,10 +3,12 @@ package main
 import (
 	"errors"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/qcdong2016/logs"
 	"github.com/robfig/cron"
 	"upper.io/db.v3/lib/sqlbuilder"
 	"upper.io/db.v3/sqlite"
@@ -145,9 +147,23 @@ func (d *DataManager) Login(msg *ReqLogin) (*User, error) {
 	case float64:
 		userid = int(val)
 	case string:
-		u := d.findUserByNick(strings.TrimSpace(val))
-		if u != nil {
-			userid = u.ID
+		val = strings.TrimSpace(val)
+		logs.Info(val)
+
+		testID, err := strconv.Atoi(val)
+		if err != nil {
+			testID = -1
+		}
+		_, ok := d.users[userid]
+		if !ok {
+			testID = -1
+		}
+
+		if testID == -1 {
+			u := d.findUserByNick(strings.TrimSpace(val))
+			if u != nil {
+				userid = u.ID
+			}
 		}
 	}
 

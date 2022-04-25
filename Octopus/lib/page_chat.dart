@@ -7,6 +7,7 @@ import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/friend_list.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:system_tray/system_tray.dart';
 
 import 'chat_input.dart';
@@ -92,7 +93,8 @@ class _ChatPageState extends State<ChatPage> {
                 hoverColor: Colors.transparent,
                 onPressed: () async {
                   if (Platform.isMacOS) {
-                    String imageName = '/Users/mac/_octopus_auto.jpg';
+                    Directory tempDir = await getTemporaryDirectory();
+                    String imageName = '${tempDir.path}/_octopus_auto.jpg';
 
                     List<String> arguments = [
                       "-i",

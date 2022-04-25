@@ -8,6 +8,7 @@ import (
 type Package struct {
 	Route    string `json:"route"`
 	CB       int    `json:"cbid"`
+	Version  int    `json:"v"`
 	ArgsSize int    `json:"argsSize"`
 	Args     []byte `json:"-"`
 	UserID   int    `json:"-"`
@@ -26,9 +27,13 @@ func NewPackage(uid int, buf []byte) (*Package, error) {
 	}
 
 	pkg.UserID = uid
-	pkg.Args = buf[index+1 : index+1+pkg.ArgsSize]
-	if len(buf) > index+1+pkg.ArgsSize {
-		pkg.Data = buf[index+1+pkg.ArgsSize:]
+	if pkg.Version >= 2 {
+		pkg.Args = buf[index+1:]
+	} else {
+		pkg.Args = buf[index+1 : index+1+pkg.ArgsSize]
+		if len(buf) > index+1+pkg.ArgsSize {
+			pkg.Data = buf[index+1+pkg.ArgsSize:]
+		}
 	}
 
 	// logger.Info("recv", "msg", string(buf[:index+1+pkg.ArgsSize]))
