@@ -8,7 +8,7 @@ import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/friend_list.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:system_tray/system_tray.dart';
+import 'package:screen_capturer/screen_capturer.dart';
 
 import 'chat_input.dart';
 import 'message_list.dart';
@@ -96,23 +96,16 @@ class _ChatPageState extends State<ChatPage> {
                     Directory tempDir = await getTemporaryDirectory();
                     String imageName = '${tempDir.path}/_octopus_auto.jpg';
 
-                    List<String> arguments = [
-                      "-i",
-                      "-r",
-                      "-u",
-                      // "-U",
-                      imageName,
-                    ];
-
-                    var res = await Process.run(
-                      '/usr/sbin/screencapture',
-                      arguments,
+                    CapturedData? capturedData =
+                        await ScreenCapturer.instance.capture(
+                      mode: CaptureMode.region, // screen, window
+                      imagePath: imageName,
                     );
 
-                    if (res.exitCode != 0) {
-                      SmartDialog.showToast(res.stderr);
+                    if (capturedData != null) {
+                      SmartDialog.showToast("错误");
                     } else {
-                      // sendFile("image", imageName);
+                      Client.sendFile("image", imageName);
                     }
                   }
                 },
