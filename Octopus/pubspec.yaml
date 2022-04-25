@@ -41,7 +41,6 @@ dependencies:
   badges: ^2.0.2
   url_launcher: ^6.0.20
   dio: ^4.0.6
-  screen_capturer: ^0.1.2
   flutter_smart_dialog: ^3.4.2+2
   filesystem_picker: ^2.0.0
   file_picker: ^4.5.1
