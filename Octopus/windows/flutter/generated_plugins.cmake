@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
+  native_context_menu
   pasteboard
   screen_capturer
   system_tray

@@ -57,11 +57,16 @@ class _MessageItemState extends State<MessageItem> {
   }
 
   Widget _createImage() {
+    var url = "http://${Data.server}/downFile?file=${widget.msg.url}";
     return Container(
       constraints: BoxConstraints(maxHeight: 500, maxWidth: 500),
-      child: Image(
-        image: NetworkImage(
-            "http://${Data.server}/downFile?file=${widget.msg.url}"),
+      child: GestureDetector(
+        child: Image(
+          image: NetworkImage(url),
+        ),
+        onTap: () {
+          launchUrl(Uri.parse(url));
+        },
       ),
     );
   }

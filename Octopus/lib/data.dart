@@ -187,6 +187,7 @@ class Message extends EventList {
   String content = "";
   String url = "";
   String filename = "";
+  String savepath = "";
 
   double _progress = 0;
   double get progress => _progress;

@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:file_icon/file_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:native_context_menu/native_context_menu.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FileMessageItem extends StatefulWidget {
   FileMessageItem({
@@ -20,25 +25,57 @@ class FileMessageItem extends StatefulWidget {
 class _FileMessageItemState extends State<FileMessageItem> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      width: 200,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            offset: const Offset(5, 5),
-            blurRadius: 5,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: GestureDetector(
-        onTap: () {
-          Client.downFile(widget.msg);
-        },
+    return ContextMenuRegion(
+      onItemSelected: (i) {
+        i.onSelected!();
+      },
+      menuItems: [
+        MenuItem(
+            title: '下载',
+            onSelected: () {
+              Client.downFile(widget.msg);
+            }),
+        MenuItem(
+            title: '查找',
+            onSelected: () async {
+              if (widget.msg.savepath == "") {
+                SmartDialog.showToast("未下载");
+                return;
+              }
+              if (Platform.isMacOS) {
+                List<String> arguments = ['-R', widget.msg.savepath];
+                var r = await Process.run(
+                  'open',
+                  arguments,
+                );
+                print(r.stderr);
+              } else {
+                List<String> arguments = [
+                  '/select,"${widget.msg.savepath.replaceAll("/", "\\")}"'
+                ];
+                Process.run(
+                  'explorer.exe ',
+                  arguments,
+                );
+              }
+            }),
+      ],
+      child: Container(
+        height: 50,
+        width: 200,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              offset: const Offset(5, 5),
+              blurRadius: 5,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        //
         child: Row(
           children: [
             SizedBox(width: 5),

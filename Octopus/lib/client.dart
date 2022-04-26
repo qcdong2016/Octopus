@@ -96,6 +96,7 @@ class Client {
     });
 
     msg.downloading = false;
+    msg.savepath = result;
 
     if (response.statusCode != 200) {
       SmartDialog.showToast('下载失败');
