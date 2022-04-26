@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'data.dart';
 import 'websocket/websocket.dart';
@@ -72,15 +73,20 @@ class Client {
     instance.doSend(route, data, cb: cb);
   }
 
-  static downFile(Message msg) async {
-    String? result = await FilePicker.platform.saveFile(
-      fileName: msg.filename,
-      dialogTitle: "保存文件",
-      lockParentWindow: true,
-    );
+  static downFile(Message msg, {bool saveas = false}) async {
+    Directory tempDir = await getTemporaryDirectory();
+    String imageName = '${tempDir.path}/${msg.filename}';
 
-    if (result == null) {
-      return;
+    if (saveas) {
+      String? result = await FilePicker.platform.saveFile(
+        fileName: msg.filename,
+        dialogTitle: "保存文件",
+        lockParentWindow: true,
+      );
+      if (result == null) {
+        return;
+      }
+      imageName = result;
     }
 
     if (msg.downloading) {
@@ -90,13 +96,13 @@ class Client {
     msg.downloading = true;
 
     var url = "http://${Data.server}/downFile?file=${msg.url}";
-    Response response =
-        await Dio().download(url, result, onReceiveProgress: (received, total) {
+    Response response = await Dio().download(url, imageName,
+        onReceiveProgress: (received, total) {
       msg.progress = received / total;
     });
 
     msg.downloading = false;
-    msg.savepath = result;
+    msg.savepath = imageName;
 
     if (response.statusCode != 200) {
       SmartDialog.showToast('下载失败');
