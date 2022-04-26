@@ -7,7 +7,9 @@ import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/friend_list.dart';
+import 'package:octopus/wx_expression.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:popover/popover.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 
 import 'chat_input.dart';
@@ -55,6 +57,8 @@ class _ChatPageState extends State<ChatPage> {
         child: Text("Octopus"),
       );
     }
+
+    var input = ChatInput();
     return Column(
       children: [
         Expanded(
@@ -72,7 +76,7 @@ class _ChatPageState extends State<ChatPage> {
                 width: 10,
               ),
               Builder(
-                builder: (c) {
+                builder: (context1) {
                   return IconButton(
                     icon: const Icon(Icons.tag_faces),
                     iconSize: 30,
@@ -80,7 +84,21 @@ class _ChatPageState extends State<ChatPage> {
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     hoverColor: Colors.transparent,
-                    onPressed: () {},
+                    onPressed: () {
+                      showPopover(
+                        context: context1,
+                        barrierColor: Colors.transparent,
+                        transitionDuration: const Duration(milliseconds: 100),
+                        bodyBuilder: (context) => WeChatExpression((e) {
+                          input.controller.text += "[${e.name}]";
+                        }),
+                        direction: PopoverDirection.bottom,
+                        width: 500,
+                        height: 300,
+                        arrowHeight: 15,
+                        arrowWidth: 30,
+                      );
+                    },
                   );
                 },
               ),
@@ -92,20 +110,20 @@ class _ChatPageState extends State<ChatPage> {
                 highlightColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 onPressed: () async {
-                    Directory tempDir = await getTemporaryDirectory();
-                    String imageName = '${tempDir.path}/_octopus_auto.jpg';
+                  Directory tempDir = await getTemporaryDirectory();
+                  String imageName = '${tempDir.path}/_octopus_auto.jpg';
 
-                    CapturedData? capturedData =
-                        await ScreenCapturer.instance.capture(
-                      mode: CaptureMode.region, // screen, window
-                      imagePath: imageName,
-                    );
+                  CapturedData? capturedData =
+                      await ScreenCapturer.instance.capture(
+                    mode: CaptureMode.region, // screen, window
+                    imagePath: imageName,
+                  );
 
-                    if (capturedData == null) {
-                      SmartDialog.showToast("错误");
-                    } else {
-                      Client.sendFile("image", imageName);
-                    }
+                  if (capturedData == null) {
+                    SmartDialog.showToast("错误");
+                  } else {
+                    Client.sendFile("image", imageName);
+                  }
                 },
               ),
               IconButton(
@@ -146,7 +164,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         Container(
           height: 150,
-          child: ChatInput(),
+          child: input,
         )
         // ,
         // MessageList(),

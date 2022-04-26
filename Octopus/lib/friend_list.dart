@@ -16,7 +16,6 @@ class FriendList extends StatefulWidget {
 }
 
 class _FriendList extends State<FriendList> {
-  ScrollController _pageScrollerController = ScrollController();
   @override
   Widget build(BuildContext context) {
     return ScrollConfiguration(
@@ -24,16 +23,21 @@ class _FriendList extends State<FriendList> {
         PointerDeviceKind.touch,
         PointerDeviceKind.mouse,
       }),
-      child: ListView.builder(
-        controller: _pageScrollerController,
-        itemCount: Data.data.friends.length,
-        itemBuilder: (BuildContext context, int index) {
-          var user = Data.data.friends[index];
-          return EventWidget(
-            buidler: ((context) => FriendItem(user: user)),
-            event: MultiEvent(list: [user, Data.data]),
+      child: EventWidget(
+        buidler: (context) {
+          return ListView.builder(
+            controller: Data.data.friendsScrollerController,
+            itemCount: Data.data.friends.length,
+            itemBuilder: (BuildContext context, int index) {
+              var user = Data.data.friends[index];
+              return EventWidget(
+                buidler: ((context) => FriendItem(user: user)),
+                event: MultiEvent(list: [user, Data.data]),
+              );
+            },
           );
         },
+        event: Data.data,
       ),
     );
   }

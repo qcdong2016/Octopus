@@ -50,6 +50,7 @@ dependencies:
   path_provider: ^2.0.9
   pasteboard: ^0.0.3
   screen_capturer: ^0.1.2
+  popover: ^0.2.6+3
 
 dev_dependencies:
   flutter_test:
@@ -74,8 +75,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - lib/expression/
     - assets/
+    - assets/expression/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

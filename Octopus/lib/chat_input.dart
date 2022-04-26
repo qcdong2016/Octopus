@@ -10,7 +10,8 @@ import 'package:pasteboard/pasteboard.dart';
 import 'package:flutter/services.dart';
 
 class ChatInput extends StatefulWidget {
-  const ChatInput({Key? key}) : super(key: key);
+  TextEditingController controller = TextEditingController();
+  ChatInput({Key? key}) : super(key: key);
 
   @override
   _ChatInputState createState() => _ChatInputState();
@@ -18,7 +19,6 @@ class ChatInput extends StatefulWidget {
 
 class _ChatInputState extends State<ChatInput> {
   final List<String> _list = [];
-  TextEditingController _controller = TextEditingController();
 
   bool _dragging = false;
 
@@ -33,7 +33,7 @@ class _ChatInputState extends State<ChatInput> {
         }
 
         if (event.logicalKey == LogicalKeyboardKey.enter) {
-          var msg = utf8.encode(_controller.text);
+          var msg = utf8.encode(widget.controller.text);
           var msg1 = base64Encode(msg);
           Client.send(
             "chat.text",
@@ -42,7 +42,7 @@ class _ChatInputState extends State<ChatInput> {
               "Content": msg1,
             },
             cb: (err, data) {
-              _controller.text = "";
+              widget.controller.text = "";
               Data.data.addMessage(Message().fromJson(data));
             },
           );
@@ -71,7 +71,7 @@ class _ChatInputState extends State<ChatInput> {
           });
         },
         child: TextField(
-          controller: _controller,
+          controller: widget.controller,
           keyboardType: TextInputType.multiline,
           maxLines: 20,
           decoration: InputDecoration(
