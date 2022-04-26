@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/avatar.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
@@ -13,6 +16,7 @@ import 'package:popover/popover.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 
 import 'chat_input.dart';
+import 'line_input.dart';
 import 'message_list.dart';
 
 class ChatPage extends StatefulWidget {
@@ -51,6 +55,52 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
+  void showConfig() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          var nickctrl = TextEditingController(text: Data.data.me.nickname);
+          Color pickerColor = Color(0xff443a49);
+          Color currentColor = Color(0xff443a49);
+
+          return AlertDialog(
+            content: Container(
+              height: 300,
+              child: Column(
+                children: [
+                  Center(
+                    child: Text("我的资料"),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Avatar(user: Data.data.me),
+                  LineInput(
+                    hint: '昵称',
+                    icon: Icons.people,
+                    controller: nickctrl,
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('取消'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('确定'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   Widget createLeft() {
     if (Data.data.chatTarget.iD == 0) {
       return const Center(
@@ -61,6 +111,39 @@ class _ChatPageState extends State<ChatPage> {
     var input = ChatInput();
     return Column(
       children: [
+        Container(
+          height: 30,
+          color: Color.fromARGB(255, 243, 243, 243),
+          child: Container(
+            alignment: Alignment.centerLeft,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  Data.data.chatTarget.nickname +
+                      (Data.data.chatTarget.online ? "[在线]" : "[离线]"),
+                ),
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      iconSize: 20,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      icon: Icon(Icons.settings),
+                      onPressed: () {
+                        showConfig();
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         Expanded(
           child: MessageList(),
         ),
