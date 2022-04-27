@@ -253,13 +253,13 @@ class ExpressionText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       child: (maxLine > 0)
-          ? Text.rich(
+          ? SelectableText.rich(
               TextSpan(
                 children: _getContent(),
               ),
               maxLines: maxLine,
             )
-          : Text.rich(TextSpan(
+          : SelectableText.rich(TextSpan(
               children: _getContent(),
             )),
     );
