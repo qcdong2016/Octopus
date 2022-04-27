@@ -85,8 +85,8 @@ class AExpression extends StatelessWidget {
         onPressed: () {
           _callClick(expression);
         },
-        child: Image.asset(
-          ExpressionData.basePath + expression.path,
+        child: Image(
+          image: expression.asset,
         ),
       ),
     );
@@ -98,19 +98,22 @@ typedef void CallClick(Expression expression);
 
 ///表情对象
 class Expression {
+  static String basePath = "assets/expression/";
+
   final String name;
   final String path;
+  AssetImage asset;
 
   ///标识是否是emoji表情,true是,默认false
   final bool isEmoji;
 
-  Expression(this.name, this.path, {this.isEmoji = false});
+  Expression(this.name, this.path, {this.isEmoji = false})
+      : asset = AssetImage(basePath + path);
 }
 
 ///数据类
 class ExpressionData {
   ///基础路径
-  static String basePath = "assets/expression/";
 
   ///表情路径
   static final List<Expression> expressionPath = [
@@ -217,12 +220,12 @@ class ExpressionData {
   ];
 
   ///kv
-  static final Map<String, String> expressionKV = {};
+  static final Map<String, Expression> expressionKV = {};
 
   ///初始化
   static void init() {
     for (var value in expressionPath) {
-      expressionKV[value.name] = value.path;
+      expressionKV[value.name] = value;
     }
   }
 
@@ -296,14 +299,16 @@ class ExpressionText extends StatelessWidget {
         ));
         var xy = _text.substring(indexX, indexY);
         var selectXy = xy.substring(1, xy.length - 1);
-        var expressionKV = ExpressionData.expressionKV[selectXy];
-        stack.add(WidgetSpan(
-          child: Image.asset(
-            'assets/expression/$expressionKV',
-            width: 30.0,
-            height: 30.0,
-          ),
-        ));
+        Expression? expressionKV = ExpressionData.expressionKV[selectXy];
+        if (expressionKV != null) {
+          stack.add(WidgetSpan(
+            child: Image(
+              width: 30.0,
+              height: 30.0,
+              image: expressionKV.asset,
+            ),
+          ));
+        }
       }
       if (afterX < (_text.length - 1)) {
         //拼接剩下的字符串
@@ -351,12 +356,16 @@ class ExpressionText extends StatelessWidget {
         isExpression = false;
         //添加一张图片
         if (ExpressionData.expressionKV.containsKey(buin)) {
-          var expressionKV = ExpressionData.expressionKV[buin];
-          stack.add(Image.asset(
-            'assets/expression/$expressionKV',
-            width: 20.0,
-            height: 20.0,
-          ));
+          Expression? expressionKV = ExpressionData.expressionKV[buin];
+          if (expressionKV != null) {
+            stack.add(
+              Image(
+                image: expressionKV.asset,
+                width: 20.0,
+                height: 20.0,
+              ),
+            );
+          }
         } else {
           //添加文本
           stack.add(Text(

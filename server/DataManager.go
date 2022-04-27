@@ -154,9 +154,11 @@ func (d *DataManager) Login(msg *ReqLogin) (*User, error) {
 		if err != nil {
 			testID = -1
 		}
-		_, ok := d.users[userid]
+		_, ok := d.users[testID]
 		if !ok {
 			testID = -1
+		} else {
+			userid = testID
 		}
 
 		if testID == -1 {
