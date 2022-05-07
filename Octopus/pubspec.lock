@@ -444,9 +444,9 @@ packages:
   system_tray:
     dependency: "direct main"
     description:
-      name: system_tray
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "system_tray-0.1.0"
+      relative: true
+    source: path
     version: "0.1.0"
   term_glyph:
     dependency: transitive

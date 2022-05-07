@@ -2,3 +2,4 @@ build*
 server/server
 server/data.db
 server/files
+octopus/system_tray-0.1.0/
