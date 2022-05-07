@@ -15,6 +15,14 @@ import 'websocket/websocket.dart';
 
 typedef CB = Function(String?, dynamic);
 
+enum DownStatus {
+  OK,
+  Cancel,
+  Downloading,
+  Exist,
+  Error,
+}
+
 class Client {
   static final Client instance = Client();
 
@@ -73,40 +81,83 @@ class Client {
     instance.doSend(route, data, cb: cb);
   }
 
-  static Future<File> downFile(
-    Message msg, {
-    bool saveas = false,
-    bool skipWhenExist = false,
-    bool skipSeek = false,
-  }) async {
-    Directory tempDir = await getApplicationDocumentsDirectory();
-    File saveFile = File('${tempDir.path}/Octopus/${msg.filename}');
-
-    if (saveas) {
-      String? result = await FilePicker.platform.saveFile(
-        fileName: msg.filename,
-        dialogTitle: "保存文件",
-        lockParentWindow: true,
-      );
-      if (result == null) {
-        return saveFile;
-      }
-      saveFile = File(result);
+// 1 取消，2 失败，0 成功, 3 已经存在 4 下载中
+  static Future<DownStatus> saveFileAs(Message msg) async {
+    String? result = await FilePicker.platform.saveFile(
+      fileName: msg.filename,
+      dialogTitle: "保存文件",
+      lockParentWindow: true,
+    );
+    if (result == null) {
+      return DownStatus.Cancel;
     }
 
+    return await saveFile(msg, File(result));
+  }
+
+  static downloadAndSeek(Message msg) async {
+    var file = await getSaveFile(msg);
+
+    var before = DateTime.now();
+    var status = await saveFileDefault(msg);
+    if (status != DownStatus.OK) {
+      return;
+    }
+    var after = DateTime.now();
+
+    if (after.difference(before).inMilliseconds > 2000) {
+      return;
+    }
+
+    await seekFile(file.path);
+  }
+
+  static downloadAndOpen(Message msg) async {
+    var file = await getSaveFile(msg);
+
+    var status = await saveFileDefault(msg);
+    if (status != DownStatus.OK && status != DownStatus.Exist) {
+      return;
+    }
+
+    if (Platform.isMacOS) {
+      List<String> arguments = [file.path];
+      Process.run(
+        'open',
+        arguments,
+      );
+    } else {
+      var path = file.path.replaceAll("/", "\\");
+      List<String> arguments = ['/k', 'explorer.exe $path'];
+      Process.run(
+        'cmd',
+        arguments,
+      );
+    }
+  }
+
+  static Future<File> getSaveFile(Message msg) async {
+    Directory tempDir = await getApplicationDocumentsDirectory();
+    return File('${tempDir.path}/Octopus/${msg.filename}');
+  }
+
+  static Future<DownStatus> saveFileDefault(Message msg) async {
+    File file = await getSaveFile(msg);
+    return await saveFile(msg, file);
+  }
+
+  static Future<DownStatus> saveFile(Message msg, File saveFile) async {
     if (!saveFile.existsSync()) {
       saveFile.createSync(recursive: true);
-    } else if (skipWhenExist) {
-      return saveFile;
+    } else {
+      return DownStatus.Exist;
     }
 
     if (msg.downloading) {
-      return saveFile;
+      return DownStatus.Downloading;
     }
 
     msg.downloading = true;
-
-    var startTime = DateTime.now();
 
     var url = "http://${Data.server}/downFile?file=${msg.url}";
     Response response = await Dio().download(url, saveFile.path,
@@ -114,20 +165,14 @@ class Client {
       msg.progress = received / total;
     });
 
-    var endTime = DateTime.now();
-
     msg.downloading = false;
     msg.savepath = saveFile.path;
 
     if (response.statusCode != 200) {
-      SmartDialog.showToast('下载失败');
-    } else if (!skipSeek) {
-      if (endTime.difference(startTime).inMilliseconds <= 2000) {
-        seekFile(saveFile.path);
-      }
+      return DownStatus.Error;
     }
 
-    return saveFile;
+    return DownStatus.OK;
   }
 
   static seekFile(String filepath) {
@@ -143,25 +188,6 @@ class Client {
     } else {
       var path = filepath.replaceAll("/", "\\");
       List<String> arguments = ['/k', 'explorer.exe /select,$path'];
-      Process.run(
-        'cmd',
-        arguments,
-      );
-    }
-  }
-
-  static downloadAndOpen(Message msg) async {
-    var file = await downFile(msg, skipSeek: true);
-
-    if (Platform.isMacOS) {
-      List<String> arguments = [file.path];
-      Process.run(
-        'open',
-        arguments,
-      );
-    } else {
-      var path = file.path.replaceAll("/", "\\");
-      List<String> arguments = ['/k', 'explorer.exe $path'];
       Process.run(
         'cmd',
         arguments,

@@ -43,7 +43,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
             ContextMenuItem(
               title: '下载',
               onTap: () {
-                Client.downFile(widget.msg);
+                Client.saveFileDefault(widget.msg);
               },
             ),
             ContextMenuItem(
@@ -54,7 +54,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
         } else {
           if (widget.msg.savepath == "" ||
               !File(widget.msg.savepath).existsSync()) {
-            Client.downFile(widget.msg);
+            Client.downloadAndSeek(widget.msg);
           } else {
             seekFile();
           }
@@ -66,64 +66,61 @@ class _FileMessageItemState extends State<FileMessageItem> {
   }
 
   Widget createFile() {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        height: 60,
-        width: 250,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(2)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              offset: const Offset(5, 5),
-              blurRadius: 5,
-              spreadRadius: 0,
+    return Container(
+      height: 60,
+      width: 250,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            offset: const Offset(5, 5),
+            blurRadius: 5,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      //
+      child: Row(
+        children: [
+          SizedBox(width: 5),
+          Container(
+            height: 40,
+            width: 40,
+            color: Color.fromARGB(255, 251, 244, 176),
+            child: FileIcon(
+              widget.msg.filename,
+              size: 30,
             ),
-          ],
-        ),
-        //
-        child: Row(
-          children: [
-            SizedBox(width: 5),
-            Container(
-              height: 40,
-              width: 40,
-              color: Color.fromARGB(255, 251, 244, 176),
-              child: FileIcon(
-                widget.msg.filename,
-                size: 30,
-              ),
-            ),
-            SizedBox(width: 5),
-            Expanded(
-              child: Text(widget.msg.filename),
-            ),
-            SizedBox(width: 5),
-            EventWidget(
-              buidler: ((context) {
-                if (widget.msg.downloading) {
-                  return CircularPercentIndicator(
-                    radius: 20.0,
-                    lineWidth: 5.0,
-                    percent: widget.msg.progress,
-                    center: Text(
-                        (widget.msg.progress * 100).floor().toString() + "%"),
-                    progressColor: Colors.green,
-                  );
-                } else {
-                  return const Icon(
-                    Icons.download,
-                    size: 20.0,
-                  );
-                }
-              }),
-              event: widget.msg,
-            ),
-            SizedBox(width: 10),
-          ],
-        ),
+          ),
+          SizedBox(width: 5),
+          Expanded(
+            child: Text(widget.msg.filename),
+          ),
+          SizedBox(width: 5),
+          EventWidget(
+            buidler: ((context) {
+              if (widget.msg.downloading) {
+                return CircularPercentIndicator(
+                  radius: 20.0,
+                  lineWidth: 5.0,
+                  percent: widget.msg.progress,
+                  center: Text(
+                      (widget.msg.progress * 100).floor().toString() + "%"),
+                  progressColor: Colors.green,
+                );
+              } else {
+                return const Icon(
+                  Icons.download,
+                  size: 20.0,
+                );
+              }
+            }),
+            event: widget.msg,
+          ),
+          SizedBox(width: 10),
+        ],
       ),
     );
   }

@@ -83,7 +83,7 @@ class _MessageItemState extends State<MessageItem> {
                 ContextMenuItem(
                   title: '另存为',
                   onTap: () {
-                    Client.downFile(widget.msg, saveas: true);
+                    Client.saveFileAs(widget.msg);
                   },
                 ),
               ]);
