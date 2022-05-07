@@ -10,14 +10,13 @@ import (
 
 	"github.com/qcdong2016/logs"
 	"github.com/robfig/cron"
-	"upper.io/db.v3/lib/sqlbuilder"
-	"upper.io/db.v3/sqlite"
 )
 
 type DataManager struct {
-	users map[int]*User
+	users map[int64]*Friend
+	teams map[int64]*Friend
 
-	DB sqlbuilder.Database
+	DB *XormDB
 
 	lock sync.Mutex
 }
@@ -25,86 +24,108 @@ type DataManager struct {
 func NewDataManager() *DataManager {
 	d := &DataManager{}
 
-	d.users = map[int]*User{}
+	d.users = map[int64]*Friend{}
+	d.teams = map[int64]*Friend{}
 
-	var settings = sqlite.ConnectionURL{
-		Database: `./data.db`, // Path to a sqlite3 database file.
-	}
+	d.DB = NewDB("octopus.db")
 
-	sess, err := sqlite.Open(settings)
-
-	if err != nil {
-		panic(err)
-	}
-
-	d.DB = sess
-
-	_, err = sess.Exec(`
-	CREATE TABLE IF NOT EXISTS users(
-		id       integer,
-		nickname varchar(50) DEFAULT NULL,
-		password varchar(12) DEFAULT NULL,
-		avatar   varchar(100)
-	);
-	CREATE TABLE IF NOT EXISTS files(
-		path varchar(50),
-		date DATE
-	);
-	`)
-
-	if err != nil {
-		panic(err)
-	}
-
-	users := []*User{}
-
-	err = d.DB.Collection("users").Find().All(&users)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, u := range users {
-		d.users[u.ID] = u
-	}
+	loadAll[*User](d, d.users, false)
+	loadAll[*Team](d, d.teams, true)
 
 	d.startCron()
 
 	return d
 }
 
-func (d *DataManager) Regist(nickname, password, avatar string) (*User, error) {
-	d.lock.Lock()
-	defer d.lock.Unlock()
+type FriendAble interface {
+	ToFriend() *Friend
+}
 
-	var userid int
+func loadAll[T FriendAble](d *DataManager, to map[int64]*Friend, online bool) {
+	all := []T{}
+	err := d.DB.Find(&all)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, u := range all {
+		f := u.ToFriend()
+		f.Online = online
+		to[f.ID] = f
+	}
+}
+
+func nextIdOf(m map[int64]*Friend, rg []int64) int64 {
+	var userid int64
 
 	for {
-		userid = RandomNum(10000, 99999)
-		if _, ok := d.users[userid]; ok {
+		userid = int64(RandomNum(rg[0], rg[1]))
+		if _, ok := m[userid]; ok {
 			continue
 		}
 
 		break
 	}
 
-	u := &User{
+	return userid
+}
+
+func (d *DataManager) getUserTeams(user int64) ([]*TeamMember, error) {
+	all := []*TeamMember{}
+	err := d.DB.Where("User=?", user).Find(&all)
+	return all, err
+}
+
+func (d *DataManager) getTeamMem(team int64) ([]*TeamMember, error) {
+	all := []*TeamMember{}
+	err := d.DB.Where("Team=?", team).Find(&all)
+	return all, err
+}
+
+func (d *DataManager) NewTeam(owner int64, nickname, avatar string) (*Team, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
+	u := &Team{
 		Nickname: nickname,
-		Password: password,
-		ID:       userid,
+		Id:       nextIdOf(d.teams, team_id_range),
 		Avatar:   avatar,
 	}
 
-	_, err := d.DB.Collection("users").Insert(u)
+	_, err := d.DB.Insert(u)
 	if err != nil {
 		return nil, err
 	}
 
-	d.users[userid] = u
+	d.teams[u.Id] = u.ToFriend()
+
+	d.SendTo(u.Id, "friendOnline", u.ToFriend())
 
 	return u, nil
 }
 
-func (d *DataManager) Logout(uid int) {
+func (d *DataManager) Regist(nickname, password, avatar string) (*User, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
+	u := &User{
+		Nickname: nickname,
+		Password: password,
+		Id:       nextIdOf(d.users, user_id_range),
+		Avatar:   avatar,
+	}
+
+	_, err := d.DB.Insert(u)
+	if err != nil {
+		return nil, err
+	}
+
+	d.users[u.Id] = u.ToFriend()
+
+	return u, nil
+}
+
+func (d *DataManager) Logout(uid int64) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -114,7 +135,7 @@ func (d *DataManager) Logout(uid int) {
 	}
 }
 
-func (d *DataManager) Get(id int) *User {
+func (d *DataManager) Get(id int64) *Friend {
 
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -127,7 +148,7 @@ func (d *DataManager) Get(id int) *User {
 	return nil
 }
 
-func (d *DataManager) findUserByNick(nick string) *User {
+func (d *DataManager) findUserByNick(nick string) *Friend {
 	for _, u := range d.users {
 		if u.Nickname == nick {
 			return u
@@ -136,21 +157,21 @@ func (d *DataManager) findUserByNick(nick string) *User {
 	return nil
 }
 
-func (d *DataManager) Login(msg *ReqLogin) (*User, error) {
+func (d *DataManager) Login(msg *ReqLogin) (*Friend, error) {
 
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	var userid int = -1
+	var userid int64 = -1
 
 	switch val := msg.ID.(type) {
 	case float64:
-		userid = int(val)
+		userid = int64(val)
 	case string:
 		val = strings.TrimSpace(val)
 		logs.Info(val)
 
-		testID, err := strconv.Atoi(val)
+		testID, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			testID = -1
 		}
@@ -169,33 +190,32 @@ func (d *DataManager) Login(msg *ReqLogin) (*User, error) {
 		}
 	}
 
-	u, ok := d.users[userid]
+	f, ok := d.users[userid]
 	if !ok {
 		return nil, errors.New("用户不存在")
+	}
+
+	u := User{}
+	err := d.DB.Where("Id=?", userid).Find(&u)
+
+	if err != nil {
+		return nil, errors.New("登陆失败")
 	}
 
 	if u.Password != msg.Password {
 		return nil, errors.New("密码错误")
 	}
 
-	u.Online = true
+	f.Online = true
 
-	return u, nil
+	return f, nil
 }
 
-func (d *DataManager) GetFriends(user int) []*User {
+func (d *DataManager) GetFriends(user int64) []*Friend {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	friends := make([]*User, 0, len(d.users))
-
-	// friends = append(friends, &User{
-	// 	ID:       996,
-	// 	Nickname: "所有人",
-	// 	Avatar:   "fonts:/#00ffff/#fff0aa/所",
-	// 	Online:   true,
-	// 	Group:    true,
-	// })
+	friends := make([]*Friend, 0, len(d.users))
 
 	for _, u := range d.users {
 		if u.ID != user {
@@ -203,12 +223,13 @@ func (d *DataManager) GetFriends(user int) []*User {
 		}
 	}
 
-	return friends
-}
+	mems, _ := d.getUserTeams(user)
+	for _, v := range mems {
+		team := d.teams[v.Team]
+		friends = append(friends, team)
+	}
 
-type FileElement struct {
-	Path string    `db:"path"`
-	Date time.Time `db:"date"`
+	return friends
 }
 
 func (d *DataManager) startCron() {
@@ -220,17 +241,40 @@ func (d *DataManager) startCron() {
 }
 
 func (d *DataManager) clearFiles() {
-	eles := []*FileElement{}
-	d.DB.Collection("files").Find().All(&eles)
+	eles := []*File{}
+	d.DB.Find(&eles)
 	for _, e := range eles {
 		os.Remove(e.Path)
 	}
-	d.DB.Collection("files").Truncate()
+	d.DB.Table(File{}).Delete()
 }
 
 func (d *DataManager) AddFile(filepath string) {
-	d.DB.Collection("files").Insert(&FileElement{
+	d.DB.Insert(&File{
 		Path: filepath,
 		Date: time.Now(),
 	})
+}
+
+func (d *DataManager) SendTo(to int64, route, msg interface{}) {
+	if to >= team_id_range[1] {
+		d.SendToTeam(to, route, msg)
+	} else {
+		user := server.Get(to)
+		if user != nil {
+			user.Send(route, msg, nil)
+		}
+	}
+}
+
+func (d *DataManager) SendToTeam(to int64, route, msg interface{}) {
+
+	mems, _ := d.getTeamMem(to)
+
+	for _, one := range mems {
+		user := server.Get(one.User)
+		if user != nil {
+			user.Send(route, msg, nil)
+		}
+	}
 }

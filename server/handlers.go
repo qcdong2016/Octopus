@@ -50,10 +50,7 @@ func onChatText(conn *WsConn, pkg *Package) error {
 	msg.Type = "text"
 	msg.From = conn.UserID
 
-	to := server.Get(msg.To)
-	if to != nil {
-		to.Send("chat.text", msg, nil)
-	}
+	dataMgr.SendTo(msg.To, "chat.text", msg)
 	conn.Send(pkg.CB, msg, nil)
 
 	return nil
@@ -78,11 +75,7 @@ func onChatImage(conn *WsConn, pkg *Package) error {
 		URL:      relPath,
 	}
 
-	user := server.Get(req.To)
-	if user != nil {
-		user.Send("chat.file", msgFile, nil)
-	}
-
+	dataMgr.SendTo(req.To, "chat.file", msgFile)
 	conn.Send(pkg.CB, msgFile, nil)
 
 	return nil
@@ -141,16 +134,14 @@ func handleUpFile(c echo.Context) error {
 		return errors.New("args error")
 	}
 
-	toUserId, err := strconv.Atoi(c.QueryParam("to"))
+	toUserId, err := strconv.ParseInt(c.QueryParam("to"), 10, 64)
 	if err != nil {
 		return err
 	}
-	fromUserId, err := strconv.Atoi(from)
+	fromUserId, err := strconv.ParseInt(from, 10, 64)
 	if err != nil {
 		return err
 	}
-
-	user := server.Get(toUserId)
 
 	msgType := c.QueryParam("type")
 	if msgType == "" {
@@ -165,9 +156,6 @@ func handleUpFile(c echo.Context) error {
 		URL:      relPath,
 	}
 
-	if user != nil {
-		user.Send("chat.file", msg, nil)
-	}
-
+	dataMgr.SendTo(toUserId, "chat.file", msg)
 	return c.JSON(http.StatusOK, msg)
 }

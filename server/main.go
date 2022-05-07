@@ -77,7 +77,7 @@ func handleRegist(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, u.ID)
+	return c.JSON(http.StatusOK, u.Id)
 }
 
 func handleChat(c echo.Context) error {

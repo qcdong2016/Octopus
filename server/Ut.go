@@ -5,12 +5,12 @@ import (
 	"math/rand"
 )
 
-func RandomNum(minNum int, maxNum int) int {
+func RandomNum(minNum int64, maxNum int64) int64 {
 	if minNum == maxNum {
 		return minNum
 	}
 
-	return rand.Intn(maxNum-minNum+1) + minNum
+	return rand.Int63n(maxNum-minNum+1) + minNum
 }
 
 func RandAvatar(name string) string {

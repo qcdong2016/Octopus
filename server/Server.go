@@ -20,14 +20,14 @@ type Server struct {
 	finished   chan struct{}
 	waitGroup  *sync.WaitGroup
 	mutex      sync.Mutex
-	conns      map[int]*WsConn
+	conns      map[int64]*WsConn
 }
 
 func NewServer() *Server {
 	svr := &Server{
 		finished:  make(chan struct{}, 1),
 		waitGroup: &sync.WaitGroup{},
-		conns:     make(map[int]*WsConn),
+		conns:     make(map[int64]*WsConn),
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func(_ *http.Request) bool { return true },
 		},
@@ -74,13 +74,13 @@ func (this *Server) onNewConnection(w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
-func (this *Server) Add(userid int, conn *WsConn) {
+func (this *Server) Add(userid int64, conn *WsConn) {
 	this.mutex.Lock()
 	this.conns[userid] = conn
 	this.mutex.Unlock()
 }
 
-func (this *Server) Del(userid int) {
+func (this *Server) Del(userid int64) {
 	this.mutex.Lock()
 	delete(this.conns, userid)
 	this.mutex.Unlock()
@@ -105,7 +105,7 @@ func (this *Server) Broadcast(route, msg interface{}, data []byte) {
 	}
 }
 
-func (this *Server) BroadcastExcept(route, msg interface{}, except int) {
+func (this *Server) BroadcastExcept(route, msg interface{}, except int64) {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 
@@ -116,7 +116,7 @@ func (this *Server) BroadcastExcept(route, msg interface{}, except int) {
 	}
 }
 
-func (this *Server) Get(UserID int) *WsConn {
+func (this *Server) Get(UserID int64) *WsConn {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 

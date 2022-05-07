@@ -34,7 +34,7 @@ type WsConn struct {
 	IP           string
 	handler      MsgHandler
 
-	UserID int
+	UserID int64
 }
 
 func (this *WsConn) IsClosed() bool {

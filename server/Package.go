@@ -11,11 +11,11 @@ type Package struct {
 	Version  int    `json:"v"`
 	ArgsSize int    `json:"argsSize"`
 	Args     []byte `json:"-"`
-	UserID   int    `json:"-"`
+	UserID   int64  `json:"-"`
 	Data     []byte `json:"-"`
 }
 
-func NewPackage(uid int, buf []byte) (*Package, error) {
+func NewPackage(uid int64, buf []byte) (*Package, error) {
 
 	index := bytes.IndexByte(buf, '}')
 
