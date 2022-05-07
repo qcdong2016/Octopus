@@ -100,9 +100,11 @@ class Client {
 
     var before = DateTime.now();
     var status = await saveFileDefault(msg);
-    if (status != DownStatus.OK) {
+
+    if (status != DownStatus.OK && status != DownStatus.Exist) {
       return;
     }
+
     var after = DateTime.now();
 
     if (after.difference(before).inMilliseconds > 2000) {

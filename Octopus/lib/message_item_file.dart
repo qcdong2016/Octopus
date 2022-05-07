@@ -24,10 +24,6 @@ class FileMessageItem extends StatefulWidget {
 }
 
 class _FileMessageItemState extends State<FileMessageItem> {
-  seekFile() {
-    Client.seekFile(widget.msg.savepath);
-  }
-
   @override
   Widget build(BuildContext context) {
     bool shouldReact = false;
@@ -41,23 +37,20 @@ class _FileMessageItemState extends State<FileMessageItem> {
         if (shouldReact) {
           await showContextMenu(menuItems: [
             ContextMenuItem(
-              title: '下载',
+              title: '另存为',
               onTap: () {
-                Client.saveFileDefault(widget.msg);
+                Client.saveFileAs(widget.msg);
               },
             ),
             ContextMenuItem(
               title: '查找',
-              onTap: seekFile,
+              onTap: () {
+                Client.downloadAndSeek(widget.msg);
+              },
             ),
           ]);
         } else {
-          if (widget.msg.savepath == "" ||
-              !File(widget.msg.savepath).existsSync()) {
-            Client.downloadAndSeek(widget.msg);
-          } else {
-            seekFile();
-          }
+          Client.downloadAndSeek(widget.msg);
         }
         shouldReact = false;
       },
