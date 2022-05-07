@@ -3,13 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/page_chat.dart';
-import 'package:system_tray/system_tray.dart';
 
-import 'chat_input.dart';
-import 'data.dart';
-import 'friend_list.dart';
-import 'message_item_file.dart';
-import 'message_list.dart';
 import 'page_login.dart';
 
 Future<void> main() async {
@@ -26,50 +20,50 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
-    initSystemTray();
+    // initSystemTray();
 
     super.initState();
   }
 
-  final SystemTray _systemTray = SystemTray();
-  final AppWindow _appWindow = AppWindow();
+  // final SystemTray _systemTray = SystemTray();
+  // final AppWindow _appWindow = AppWindow();
 
-  Future<void> initSystemTray() async {
-    String path =
-        Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png';
+  // Future<void> initSystemTray() async {
+  //   String path =
+  //       Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png';
 
-    final menu = [
-      MenuItem(label: 'Show', onClicked: _appWindow.show),
-      MenuItem(label: 'Hide', onClicked: _appWindow.hide),
-      MenuItem(
-        label: 'Exit',
-        onClicked: () {
-          exit(0);
-        },
-      ),
-    ];
+  //   final menu = [
+  //     MenuItem(label: 'Show', onClicked: _appWindow.show),
+  //     MenuItem(label: 'Hide', onClicked: _appWindow.hide),
+  //     MenuItem(
+  //       label: 'Exit',
+  //       onClicked: () {
+  //         exit(0);
+  //       },
+  //     ),
+  //   ];
 
-    // We first init the systray menu and then add the menu entries
-    await _systemTray.initSystemTray(
-      title: "",
-      iconPath: path,
-    );
+  //   // We first init the systray menu and then add the menu entries
+  //   await _systemTray.initSystemTray(
+  //     title: "",
+  //     iconPath: path,
+  //   );
 
-    await _systemTray.setContextMenu(menu);
+  //   await _systemTray.setContextMenu(menu);
 
-    // handle system tray event
-    _systemTray.registerSystemTrayEventHandler((eventName) {
-      debugPrint("eventName: $eventName");
+  //   // handle system tray event
+  //   _systemTray.registerSystemTrayEventHandler((eventName) {
+  //     debugPrint("eventName: $eventName");
 
-      if (eventName == "leftMouseDown") {
-      } else if (eventName == "leftMouseUp") {
-        _appWindow.show();
-      } else if (eventName == "rightMouseDown") {
-      } else if (eventName == "rightMouseUp") {
-        _systemTray.popUpContextMenu();
-      }
-    });
-  }
+  //     if (eventName == "leftMouseDown") {
+  //     } else if (eventName == "leftMouseUp") {
+  //       _appWindow.show();
+  //     } else if (eventName == "rightMouseDown") {
+  //     } else if (eventName == "rightMouseUp") {
+  //       _systemTray.popUpContextMenu();
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

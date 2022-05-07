@@ -32,7 +32,8 @@ class _ChatInputState extends State<ChatInput> {
           return;
         }
 
-        if (event.logicalKey == LogicalKeyboardKey.enter) {
+        if (event.logicalKey == LogicalKeyboardKey.enter &&
+            !event.isShiftPressed) {
           var msg = utf8.encode(widget.controller.text);
           var msg1 = base64Encode(msg);
           Client.send(

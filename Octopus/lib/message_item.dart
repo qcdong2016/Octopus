@@ -1,10 +1,12 @@
 import 'package:bubble/bubble.dart';
+import 'package:desktop_context_menu/desktop_context_menu.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/message_item_file.dart';
 import 'package:octopus/wx_expression.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'client.dart';
 import 'data.dart';
 
 class MessageItem extends StatefulWidget {
@@ -57,17 +59,41 @@ class _MessageItemState extends State<MessageItem> {
   }
 
   Widget _createImage() {
+    bool shouldReact = false;
     var url = "http://${Data.server}/downFile?file=${widget.msg.url}";
     return Container(
       constraints: BoxConstraints(maxHeight: 500, maxWidth: 500),
-      child: GestureDetector(
-        child: Image(
-          image: NetworkImage(url),
-        ),
-        onTap: () {
-          launchUrl(Uri.parse(url));
-        },
-      ),
+      child: Listener(
+          child: Image(
+            image: NetworkImage(url),
+          ),
+          onPointerDown: (e) {
+            shouldReact = e.kind == PointerDeviceKind.mouse &&
+                e.buttons == kSecondaryMouseButton;
+          },
+          onPointerUp: (PointerUpEvent e) async {
+            if (shouldReact) {
+              await showContextMenu(menuItems: [
+                ContextMenuItem(
+                  title: '保存并查看',
+                  onTap: () {
+                    Client.downloadAndOpen(widget.msg);
+                  },
+                ),
+                ContextMenuItem(
+                  title: '另存为',
+                  onTap: () {
+                    Client.downFile(widget.msg, saveas: true);
+                  },
+                ),
+              ]);
+            } else {
+              Client.downloadAndOpen(widget.msg);
+              // launchUrl(Uri.parse(url));
+            }
+
+            shouldReact = false;
+          }),
     );
   }
 

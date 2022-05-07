@@ -73,9 +73,14 @@ class Client {
     instance.doSend(route, data, cb: cb);
   }
 
-  static downFile(Message msg, {bool saveas = false}) async {
-    Directory tempDir = await getTemporaryDirectory();
-    String imageName = '${tempDir.path}/${msg.filename}';
+  static Future<File> downFile(
+    Message msg, {
+    bool saveas = false,
+    bool skipWhenExist = false,
+    bool skipSeek = false,
+  }) async {
+    Directory tempDir = await getApplicationDocumentsDirectory();
+    File saveFile = File('${tempDir.path}/Octopus/${msg.filename}');
 
     if (saveas) {
       String? result = await FilePicker.platform.saveFile(
@@ -84,30 +89,83 @@ class Client {
         lockParentWindow: true,
       );
       if (result == null) {
-        return;
+        return saveFile;
       }
-      imageName = result;
+      saveFile = File(result);
+    }
+
+    if (!saveFile.existsSync()) {
+      saveFile.createSync(recursive: true);
+    } else if (skipWhenExist) {
+      return saveFile;
     }
 
     if (msg.downloading) {
-      return;
+      return saveFile;
     }
 
     msg.downloading = true;
 
+    var startTime = DateTime.now();
+
     var url = "http://${Data.server}/downFile?file=${msg.url}";
-    Response response = await Dio().download(url, imageName,
+    Response response = await Dio().download(url, saveFile.path,
         onReceiveProgress: (received, total) {
       msg.progress = received / total;
     });
 
+    var endTime = DateTime.now();
+
     msg.downloading = false;
-    msg.savepath = imageName;
+    msg.savepath = saveFile.path;
 
     if (response.statusCode != 200) {
       SmartDialog.showToast('下载失败');
+    } else if (!skipSeek) {
+      if (endTime.difference(startTime).inMilliseconds <= 2000) {
+        seekFile(saveFile.path);
+      }
+    }
+
+    return saveFile;
+  }
+
+  static seekFile(String filepath) {
+    if (filepath == "") {
+      return;
+    }
+    if (Platform.isMacOS) {
+      List<String> arguments = ['-R', filepath];
+      Process.run(
+        'open',
+        arguments,
+      );
     } else {
-      print("成功");
+      var path = filepath.replaceAll("/", "\\");
+      List<String> arguments = ['/k', 'explorer.exe /select,$path'];
+      Process.run(
+        'cmd',
+        arguments,
+      );
+    }
+  }
+
+  static downloadAndOpen(Message msg) async {
+    var file = await downFile(msg, skipSeek: true);
+
+    if (Platform.isMacOS) {
+      List<String> arguments = [file.path];
+      Process.run(
+        'open',
+        arguments,
+      );
+    } else {
+      var path = file.path.replaceAll("/", "\\");
+      List<String> arguments = ['/k', 'explorer.exe $path'];
+      Process.run(
+        'cmd',
+        arguments,
+      );
     }
   }
 

@@ -51,7 +51,7 @@ dependencies:
   pasteboard: ^0.0.3
   screen_capturer: ^0.1.2
   popover: ^0.2.6+3
-  native_context_menu: ^0.2.1+4
+  desktop_context_menu: ^0.1.1
   flutter_colorpicker: ^1.0.3
   
 dev_dependencies:

@@ -5,8 +5,8 @@
 import FlutterMacOS
 import Foundation
 
+import desktop_context_menu_macos
 import desktop_drop
-import native_context_menu
 import pasteboard
 import path_provider_macos
 import screen_capturer
@@ -15,8 +15,8 @@ import system_tray
 import url_launcher_macos
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
+  DesktopContextMenuMacosPlugin.register(with: registry.registrar(forPlugin: "DesktopContextMenuMacosPlugin"))
   DesktopDropPlugin.register(with: registry.registrar(forPlugin: "DesktopDropPlugin"))
-  NativeContextMenuPlugin.register(with: registry.registrar(forPlugin: "NativeContextMenuPlugin"))
   PasteboardPlugin.register(with: registry.registrar(forPlugin: "PasteboardPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   ScreenCapturerPlugin.register(with: registry.registrar(forPlugin: "ScreenCapturerPlugin"))
