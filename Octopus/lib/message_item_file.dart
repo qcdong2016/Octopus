@@ -35,7 +35,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
       },
       onPointerUp: (PointerUpEvent e) async {
         if (shouldReact) {
-          await showContextMenu(menuItems: [
+          var menu = await showContextMenu(menuItems: [
             ContextMenuItem(
               title: '另存为',
               onTap: () {
@@ -49,6 +49,8 @@ class _FileMessageItemState extends State<FileMessageItem> {
               },
             ),
           ]);
+
+          menu?.onTap?.call();
         } else {
           Client.downloadAndSeek(widget.msg);
         }

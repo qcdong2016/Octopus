@@ -73,7 +73,7 @@ class _MessageItemState extends State<MessageItem> {
           },
           onPointerUp: (PointerUpEvent e) async {
             if (shouldReact) {
-              await showContextMenu(menuItems: [
+              var menu = await showContextMenu(menuItems: [
                 ContextMenuItem(
                   title: '保存并查看',
                   onTap: () {
@@ -87,6 +87,7 @@ class _MessageItemState extends State<MessageItem> {
                   },
                 ),
               ]);
+              menu?.onTap?.call();
             } else {
               Client.downloadAndOpen(widget.msg);
               // launchUrl(Uri.parse(url));
