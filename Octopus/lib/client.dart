@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,7 +10,6 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'data.dart';
-import 'websocket/websocket.dart';
 
 typedef CB = Function(String?, dynamic);
 
@@ -31,24 +29,27 @@ class Client {
   Timer? _timer;
 
   int retryCount = 0;
+  bool _isLogin = false;
 
   void login(String nickname, String password) async {
     Data.setUP(nickname, password);
 
     _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_webSocket == null) {
+      if (_webSocket == null && !_isLogin) {
         return;
       }
 
-      if (_webSocket!.readyState == _webSocket!.state_open) {
-        doSend("ping", {}, log: false);
-      } else if (_webSocket!.readyState == _webSocket!.state_closed) {
+      if (_webSocket == null ||
+          _webSocket?.readyState == WebSocket.closed ||
+          _webSocket?.closeCode != null) {
         if (retryCount == 0) {
           SmartDialog.showLoading(
               msg: "已掉线，重连中。。", background: Colors.black.withOpacity(0.5));
         }
         retryCount++;
         _doLogin();
+      } else if (_webSocket!.readyState == WebSocket.open) {
+        doSend("ping", {}, log: false);
       }
     });
     _doLogin();
@@ -61,9 +62,16 @@ class Client {
 
   Future<void> _doLogin() async {
     _webSocket?.close();
+
+    _isLogin = true;
+
     try {
       _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
-      _webSocket?.stream.listen(dispatch);
+      _webSocket?.listen(
+        dispatch,
+        onDone: () => _webSocket = null,
+      );
+
       doSend("login", {
         "ID": Data.data.me.nickname,
         "Password": Data.data.me.password,
