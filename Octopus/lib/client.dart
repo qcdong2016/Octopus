@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import 'data.dart';
@@ -104,7 +104,7 @@ class Client {
   }
 
   static downloadAndSeek(Message msg) async {
-    var file = await getSaveFile(msg);
+    var file = await getSaveFile(msg, false);
 
     var before = DateTime.now();
     var status = await saveFileDefault(msg);
@@ -123,21 +123,19 @@ class Client {
   }
 
   static downloadAndOpen(Message msg) async {
-    var file = await getSaveFile(msg);
-
     var status = await saveFileDefault(msg);
     if (status != DownStatus.OK && status != DownStatus.Exist) {
       return;
     }
 
     if (Platform.isMacOS) {
-      List<String> arguments = [file.path];
+      List<String> arguments = [msg.savepath];
       Process.run(
         'open',
         arguments,
       );
     } else {
-      var path = file.path.replaceAll("/", "\\");
+      var path = msg.savepath.replaceAll("/", "\\");
       List<String> arguments = ['/k', 'explorer.exe $path'];
       Process.run(
         'cmd',
@@ -146,13 +144,28 @@ class Client {
     }
   }
 
-  static Future<File> getSaveFile(Message msg) async {
+  static Future<File> getSaveFile(Message msg, bool dup) async {
+    if (msg.savepath != "") {
+      return File(msg.savepath);
+    }
+
     Directory tempDir = await getApplicationDocumentsDirectory();
-    return File('${tempDir.path}/Octopus/${msg.filename}');
+    var dir = "${tempDir.path}/Octopus";
+    var file = File('$dir/${msg.filename}');
+
+    var index = 1;
+    while (file.existsSync()) {
+      var base = path.basename(msg.filename);
+      var ext = path.extension(msg.filename);
+      file = File('$dir/${base + '_' + index.toString() + ext}');
+      index++;
+    }
+
+    return file;
   }
 
   static Future<DownStatus> saveFileDefault(Message msg) async {
-    File file = await getSaveFile(msg);
+    File file = await getSaveFile(msg, false);
     return await saveFile(msg, file);
   }
 
@@ -209,8 +222,8 @@ class Client {
     var url =
         "http://${Data.server}/upFile?from=${msg.from}&to=${msg.to}&type=$type";
 
-    var pf =
-        await MultipartFile.fromFile(filename, filename: basename(filename));
+    var pf = await MultipartFile.fromFile(filename,
+        filename: path.basename(filename));
     var formData = FormData.fromMap({
       'file': pf,
     });
@@ -236,7 +249,7 @@ class Client {
       "Type": type,
       "From": from,
       "To": to,
-      "FileName": basename(filename),
+      "FileName": path.basename(filename),
       "URL": "",
     });
 

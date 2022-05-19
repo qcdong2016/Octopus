@@ -14,6 +14,7 @@ import 'package:octopus/wx_expression.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:popover/popover.dart';
 import 'package:screen_capturer/screen_capturer.dart';
+import 'package:intl/intl.dart';
 
 import 'chat_input.dart';
 import 'line_input.dart';
@@ -193,19 +194,24 @@ class _ChatPageState extends State<ChatPage> {
                 highlightColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 onPressed: () async {
-                  Directory tempDir = await getTemporaryDirectory();
-                  String imageName = '${tempDir.path}/_octopus_auto.jpg';
+                  Directory tempDir = await getApplicationDocumentsDirectory();
+                  var date = DateFormat("yyyy-MM-dd_HHmmss", 'en_US')
+                      .format(DateTime.now());
+
+                  File file =
+                      File('${tempDir.path}/Octopus/ScreenShot/SC_$date.jpg');
+                  file.createSync(recursive: true);
 
                   CapturedData? capturedData =
                       await ScreenCapturer.instance.capture(
                     mode: CaptureMode.region, // screen, window
-                    imagePath: imageName,
+                    imagePath: file.path,
                   );
 
                   if (capturedData == null) {
                     SmartDialog.showToast("错误");
                   } else {
-                    Client.sendFile("image", imageName);
+                    Client.sendFile("image", file.path);
                   }
                 },
               ),
