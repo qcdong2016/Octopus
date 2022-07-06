@@ -34,19 +34,22 @@ class _ChatInputState extends State<ChatInput> {
 
         if (event.logicalKey == LogicalKeyboardKey.enter &&
             !event.isShiftPressed) {
-          var msg = utf8.encode(widget.controller.text);
-          var msg1 = base64Encode(msg);
-          Client.send(
-            "chat.text",
-            {
-              "To": Data.data.chatTarget.iD,
-              "Content": msg1,
-            },
-            cb: (err, data) {
-              widget.controller.text = "";
-              Data.data.addMessage(Message().fromJson(data));
-            },
-          );
+          var text = widget.controller.text.trim();
+          if (text != "") {
+            var msg = utf8.encode(text);
+            var msg1 = base64Encode(msg);
+            Client.send(
+              "chat.text",
+              {
+                "To": Data.data.chatTarget.iD,
+                "Content": msg1,
+              },
+              cb: (err, data) {
+                widget.controller.text = "";
+                Data.data.addMessage(Message().fromJson(data));
+              },
+            );
+          }
         }
 
         if (event.logicalKey == LogicalKeyboardKey.keyV &&
