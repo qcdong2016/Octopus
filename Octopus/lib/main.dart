@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide MenuItem;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/page_chat.dart';
 import 'package:system_tray/system_tray.dart';
@@ -28,21 +28,30 @@ class _MyAppState extends State<MyApp> {
 
   final SystemTray _systemTray = SystemTray();
   final AppWindow _appWindow = AppWindow();
+  final Menu _menuMain = Menu();
 
   Future<void> initSystemTray() async {
     String path =
         Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png';
 
-    final menu = [
-      TrayMenuItem(label: 'Show', onClicked: _appWindow.show),
-      TrayMenuItem(label: 'Hide', onClicked: _appWindow.hide),
-      TrayMenuItem(
+    _menuMain.buildFrom([
+      MenuItemLable(
+          label: 'Show',
+          onClicked: (menuItem) {
+            _appWindow.show();
+          }),
+      MenuItemLable(
+          label: 'Hide',
+          onClicked: (menuItem) {
+            _appWindow.hide();
+          }),
+      MenuItemLable(
         label: 'Exit',
-        onClicked: () {
+        onClicked: (menuItem) {
           exit(0);
         },
       ),
-    ];
+    ]);
 
     // We first init the systray menu and then add the menu entries
     await _systemTray.initSystemTray(
@@ -50,17 +59,13 @@ class _MyAppState extends State<MyApp> {
       iconPath: path,
     );
 
-    await _systemTray.setContextMenu(menu);
+    await _systemTray.setContextMenu(_menuMain);
 
     // handle system tray event
     _systemTray.registerSystemTrayEventHandler((eventName) {
-      debugPrint("eventName: $eventName");
-
-      if (eventName == "leftMouseDown") {
-      } else if (eventName == "leftMouseUp") {
+      if (eventName == kSystemTrayEventClick) {
         _appWindow.show();
-      } else if (eventName == "rightMouseDown") {
-      } else if (eventName == "rightMouseUp") {
+      } else if (eventName == kSystemTrayEventRightClick) {
         _systemTray.popUpContextMenu();
       }
     });
