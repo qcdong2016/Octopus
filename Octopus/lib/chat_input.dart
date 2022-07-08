@@ -8,6 +8,7 @@ import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as path;
 
 class ChatInput extends StatefulWidget {
   TextEditingController controller = TextEditingController();
@@ -61,7 +62,17 @@ class _ChatInputState extends State<ChatInput> {
         onDragDone: (detail) {
           setState(() {
             var file = detail.files[0];
-            Client.sendFile("file", file.path);
+
+            var ext = path.extension(file.path).toLowerCase();
+            if (ext == '.jpg' ||
+                ext == ".jpeg" ||
+                ext == ".png" ||
+                ext == ".gif" ||
+                ext == ".webp") {
+              Client.sendFile("image", file.path);
+            } else {
+              Client.sendFile("file", file.path);
+            }
           });
         },
         onDragEntered: (detail) {

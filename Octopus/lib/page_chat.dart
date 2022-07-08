@@ -8,6 +8,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/avatar.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
+import 'package:octopus/event/event.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/friend_list.dart';
 import 'package:octopus/wx_expression.dart';
@@ -272,7 +273,8 @@ class _ChatPageState extends State<ChatPage> {
             width: 150,
             child: EventWidget(
               buidler: (context) => FriendList(),
-              event: Data.data.friendListEvent,
+              event: MultiEvent(
+                  list: [Data.data.friendListEvent, Data.data.chatTargetEvent]),
             ),
           ),
           Container(

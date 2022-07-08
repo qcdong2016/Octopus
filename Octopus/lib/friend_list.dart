@@ -19,20 +19,20 @@ class _FriendList extends State<FriendList> {
   @override
   Widget build(BuildContext context) {
     return ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {
           PointerDeviceKind.touch,
           PointerDeviceKind.mouse,
-        }),
-        child: ListView.builder(
-          controller: Data.data.friendsScrollerController,
-          itemCount: Data.data.friends.length,
-          itemBuilder: (BuildContext context, int index) {
-            var user = Data.data.friends[index];
-            return EventWidget(
-              buidler: ((context) => FriendItem(user: user)),
-              event: user,
-            );
-          },
-        ));
+        },
+      ),
+      child: ListView.builder(
+        controller: Data.data.friendsScrollerController,
+        itemCount: Data.data.friends.length,
+        itemBuilder: (BuildContext context, int index) {
+          var user = Data.data.friends[index];
+          return FriendItem(user: user);
+        },
+      ),
+    );
   }
 }
