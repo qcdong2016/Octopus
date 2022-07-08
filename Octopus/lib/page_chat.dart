@@ -102,7 +102,7 @@ class _ChatPageState extends State<ChatPage> {
         });
   }
 
-  Widget createLeft() {
+  Widget createRight() {
     if (Data.data.chatTarget.iD == 0) {
       return const Center(
         child: Text("Octopus"),
@@ -122,10 +122,12 @@ class _ChatPageState extends State<ChatPage> {
                 SizedBox(
                   width: 10,
                 ),
-                Text(
-                  Data.data.chatTarget.nickname +
-                      (Data.data.chatTarget.online ? "[在线]" : "[离线]"),
-                ),
+                EventWidget(
+                    buidler: ((context) => Text(
+                          Data.data.chatTarget.nickname +
+                              (Data.data.chatTarget.online ? "[在线]" : "[离线]"),
+                        )),
+                    event: Data.data.chatTarget),
                 Expanded(
                   child: Container(
                     alignment: Alignment.centerRight,
@@ -268,7 +270,10 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Container(
             width: 150,
-            child: FriendList(),
+            child: EventWidget(
+              buidler: (context) => FriendList(),
+              event: Data.data.friendListEvent,
+            ),
           ),
           Container(
             width: 1,
@@ -276,8 +281,8 @@ class _ChatPageState extends State<ChatPage> {
           ),
           Expanded(
             child: EventWidget(
-              buidler: (context) => createLeft(),
-              event: Data.data,
+              buidler: (context) => createRight(),
+              event: Data.data.chatTargetEvent,
             ),
           ),
         ],

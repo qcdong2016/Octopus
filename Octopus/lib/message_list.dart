@@ -18,7 +18,7 @@ class _MessageListState extends State<MessageList> {
   Widget build(BuildContext context) {
     return Container(
       child: EventWidget(
-        event: Data.data,
+        event: Data.data.msgCurrentEvent,
         buidler: (context) {
           var list = Data.data.getMessage(Data.data.chatTarget.iD);
 
