@@ -49,8 +49,13 @@ func onChatText(conn *WsConn, pkg *Package) error {
 
 	msg.Type = "text"
 	msg.From = conn.UserID
+	msg.Sender = conn.UserID
 
-	dataMgr.SendTo(msg.To, "chat.text", msg)
+	if msg.To >= team_id_range[0] {
+		msg.From = msg.To
+	}
+
+	dataMgr.SendTo(conn.UserID, msg.To, "chat.text", msg)
 	conn.Send(pkg.CB, msg, nil)
 
 	return nil
@@ -67,16 +72,21 @@ func onChatImage(conn *WsConn, pkg *Package) error {
 		return err
 	}
 
-	msgFile := &FileMsg{
+	msg := &FileMsg{
 		Type:     "image",
 		From:     conn.UserID,
+		Sender:   conn.UserID,
 		To:       req.To,
 		FileName: req.FileName,
 		URL:      relPath,
 	}
 
-	dataMgr.SendTo(req.To, "chat.file", msgFile)
-	conn.Send(pkg.CB, msgFile, nil)
+	if msg.To >= team_id_range[0] {
+		msg.From = msg.To
+	}
+
+	dataMgr.SendTo(conn.UserID, req.To, "chat.file", msg)
+	conn.Send(pkg.CB, msg, nil)
 
 	return nil
 }
@@ -154,8 +164,13 @@ func handleUpFile(c echo.Context) error {
 		To:       toUserId,
 		FileName: formFile.Filename,
 		URL:      relPath,
+		Sender:   fromUserId,
 	}
 
-	dataMgr.SendTo(toUserId, "chat.file", msg)
+	if msg.To >= team_id_range[0] {
+		msg.From = msg.To
+	}
+
+	dataMgr.SendTo(fromUserId, toUserId, "chat.file", msg)
 	return c.JSON(http.StatusOK, msg)
 }

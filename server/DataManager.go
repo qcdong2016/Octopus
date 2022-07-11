@@ -82,6 +82,10 @@ func (d *DataManager) getTeamMem(team int64) ([]*TeamMember, error) {
 	return all, err
 }
 
+func (d *DataManager) teamAddMem(team, mem int64) {
+	d.DB.Insert(TeamMember{Team: team, User: mem})
+}
+
 func (d *DataManager) NewTeam(owner int64, nickname, avatar string) (*Team, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -99,7 +103,7 @@ func (d *DataManager) NewTeam(owner int64, nickname, avatar string) (*Team, erro
 
 	d.teams[u.Id] = u.ToFriend()
 
-	d.SendTo(u.Id, "friendOnline", u.ToFriend())
+	d.SendTo(0, u.Id, "friendOnline", u.ToFriend())
 
 	return u, nil
 }
@@ -121,6 +125,8 @@ func (d *DataManager) Regist(nickname, password, avatar string) (*User, error) {
 	}
 
 	d.users[u.Id] = u.ToFriend()
+
+	d.teamAddMem(default_team_id, u.Id)
 
 	return u, nil
 }
@@ -196,7 +202,7 @@ func (d *DataManager) Login(msg *ReqLogin) (*Friend, error) {
 	}
 
 	u := User{}
-	err := d.DB.Where("Id=?", userid).Find(&u)
+	_, err := d.DB.Table(u).Where("Id=?", userid).Get(&u)
 
 	if err != nil {
 		return nil, errors.New("登陆失败")
@@ -256,9 +262,9 @@ func (d *DataManager) AddFile(filepath string) {
 	})
 }
 
-func (d *DataManager) SendTo(to int64, route, msg interface{}) {
-	if to >= team_id_range[1] {
-		d.SendToTeam(to, route, msg)
+func (d *DataManager) SendTo(sender, to int64, route, msg interface{}) {
+	if to >= team_id_range[0] {
+		d.SendToTeam(sender, to, route, msg)
 	} else {
 		user := server.Get(to)
 		if user != nil {
@@ -267,14 +273,16 @@ func (d *DataManager) SendTo(to int64, route, msg interface{}) {
 	}
 }
 
-func (d *DataManager) SendToTeam(to int64, route, msg interface{}) {
+func (d *DataManager) SendToTeam(sender, to int64, route, msg interface{}) {
 
 	mems, _ := d.getTeamMem(to)
 
 	for _, one := range mems {
-		user := server.Get(one.User)
-		if user != nil {
-			user.Send(route, msg, nil)
+		if one.User != sender {
+			user := server.Get(one.User)
+			if user != nil {
+				user.Send(route, msg, nil)
+			}
 		}
 	}
 }

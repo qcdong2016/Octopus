@@ -6,6 +6,7 @@ import 'package:octopus/message_item_file.dart';
 import 'package:octopus/wx_expression.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'avatar.dart';
 import 'client.dart';
 import 'data.dart';
 
@@ -99,30 +100,48 @@ class _MessageItemState extends State<MessageItem> {
   }
 
   Widget _createLeft({required Widget child}) {
-    return Bubble(
+    var bb = Bubble(
       margin: BubbleEdges.only(top: 10),
       alignment: Alignment.topLeft,
       nip: BubbleNip.leftTop,
       color: otherBubbleColor,
       child: child,
     );
+    if (Data.data.chatTarget.group) {
+      var sender = Data.data.getUser(widget.msg.sender);
+      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Avatar(user: sender),
+        Expanded(child: bb),
+      ]);
+    } else {
+      return bb;
+    }
   }
 
   Widget _createRight({required Widget child}) {
-    return Bubble(
-      margin: BubbleEdges.only(top: 10),
+    var bb = Bubble(
+      margin: const BubbleEdges.only(
+        top: 10,
+      ),
       alignment: Alignment.topRight,
       nip: BubbleNip.rightTop,
       color: selfBubbleColor,
       child: child,
     );
+
+    if (Data.data.chatTarget.group) {
+      var sender = Data.data.getUser(widget.msg.sender);
+
+      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Expanded(child: SizedBox()),
+        Expanded(child: bb),
+        Avatar(user: sender),
+      ]);
+    } else {
+      return bb;
+    }
   }
 
-// Bubble(
-//             alignment: Alignment.center,
-//             color: Color.fromARGB(255, 237, 249, 255),
-//             child: Text('TODAY', textAlign: TextAlign.center, style: textStyle),
-//           ),
   @override
   Widget build(BuildContext context) {
     late Widget child;
@@ -134,9 +153,10 @@ class _MessageItemState extends State<MessageItem> {
       child = ExpressionText(widget.msg.content, textStyle);
     }
 
-    if (widget.msg.from != Data.data.me.iD)
-      return _createLeft(child: child);
-    else
+    if (widget.msg.from == Data.data.me.iD ||
+        widget.msg.sender == Data.data.me.iD)
       return _createRight(child: child);
+    else
+      return _createLeft(child: child);
   }
 }

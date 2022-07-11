@@ -24,7 +24,6 @@ type Team struct {
 }
 
 type TeamMember struct {
-	Id   int64
 	Team int64
 	User int64
 }
@@ -38,6 +37,7 @@ var all_docs = []interface{}{
 
 var user_id_range = []int64{10000, 99999}
 var team_id_range = []int64{1000000, 9999999}
+var default_team_id = int64(1000000)
 
 // msgs
 
@@ -46,6 +46,8 @@ type Friend struct {
 	Nickname string
 	Avatar   string
 	Online   bool
+	Password string
+	Group    bool
 }
 
 func (u *User) ToFriend() *Friend {
@@ -61,6 +63,7 @@ func (u *Team) ToFriend() *Friend {
 		ID:       u.Id,
 		Nickname: u.Nickname,
 		Avatar:   u.Avatar,
+		Group:    true,
 	}
 }
 
@@ -84,6 +87,7 @@ type ReqChatTextP2P struct {
 
 type ReqChatImageP2P struct {
 	Type     string
+	Sender   int64 // 发送者
 	From     int64
 	To       int64
 	FileName string
@@ -95,6 +99,7 @@ type RespChatTextP2P struct {
 
 type FileMsg struct {
 	Type     string
+	Sender   int64 // 发送者
 	From     int64
 	To       int64
 	URL      string

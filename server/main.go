@@ -2,8 +2,10 @@ package main
 
 import (
 	"errors"
+	"math/rand"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/qcdong2016/logs"
@@ -30,6 +32,8 @@ func CrossOrigin(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func main() {
+	rand.Seed(time.Now().Unix())
+
 	server = NewServer()
 	dataMgr = NewDataManager()
 
