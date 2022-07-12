@@ -8,9 +8,9 @@ import Foundation
 import desktop_context_menu_macos
 import desktop_drop
 import flutter_local_notifications
+import local_notifier
 import pasteboard
 import path_provider_macos
-import quick_notify
 import screen_capturer
 import screen_retriever
 import shared_preferences_macos
@@ -22,9 +22,9 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   DesktopContextMenuMacosPlugin.register(with: registry.registrar(forPlugin: "DesktopContextMenuMacosPlugin"))
   DesktopDropPlugin.register(with: registry.registrar(forPlugin: "DesktopDropPlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
+  LocalNotifierPlugin.register(with: registry.registrar(forPlugin: "LocalNotifierPlugin"))
   PasteboardPlugin.register(with: registry.registrar(forPlugin: "PasteboardPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
-  QuickNotifyPlugin.register(with: registry.registrar(forPlugin: "QuickNotifyPlugin"))
   ScreenCapturerPlugin.register(with: registry.registrar(forPlugin: "ScreenCapturerPlugin"))
   ScreenRetrieverPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))

@@ -44,7 +44,7 @@ class Client {
           _webSocket?.closeCode != null) {
         if (retryCount == 0) {
           SmartDialog.showLoading(
-              msg: "已掉线，重连中。。", background: Colors.black.withOpacity(0.5));
+              msg: "已掉线，重连中。。", maskColor: Colors.black.withOpacity(0.5));
         }
         retryCount++;
         _doLogin();

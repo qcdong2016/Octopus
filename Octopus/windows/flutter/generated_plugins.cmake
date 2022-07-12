@@ -5,8 +5,8 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_context_menu_windows
   desktop_drop
+  local_notifier
   pasteboard
-  quick_notify
   screen_capturer
   screen_retriever
   system_tray

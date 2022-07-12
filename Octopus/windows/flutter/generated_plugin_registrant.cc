@@ -8,8 +8,8 @@
 
 #include <desktop_context_menu_windows/desktop_context_menu_windows_plugin.h>
 #include <desktop_drop/desktop_drop_plugin.h>
+#include <local_notifier/local_notifier_plugin.h>
 #include <pasteboard/pasteboard_plugin.h>
-#include <quick_notify/quick_notify_plugin.h>
 #include <screen_capturer/screen_capturer_plugin.h>
 #include <screen_retriever/screen_retriever_plugin.h>
 #include <system_tray/system_tray_plugin.h>
@@ -21,10 +21,10 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("DesktopContextMenuWindowsPlugin"));
   DesktopDropPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DesktopDropPlugin"));
+  LocalNotifierPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("LocalNotifierPlugin"));
   PasteboardPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PasteboardPlugin"));
-  QuickNotifyPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("QuickNotifyPlugin"));
   ScreenCapturerPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ScreenCapturerPlugin"));
   ScreenRetrieverPluginRegisterWithRegistrar(

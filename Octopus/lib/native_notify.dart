@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:quick_notify/quick_notify.dart';
+import 'package:local_notifier/local_notifier.dart';
 
 import 'main.dart';
 
@@ -60,21 +60,22 @@ class NativeNotifyWindows implements NativeNotifyImpl {
   @override
   Future<void> init() async {
     // Add in main method.
-    // await localNotifier.setup(
-    //   appName: 'Octopus',
-    //   // The parameter shortcutPolicy only works on Windows
-    //   shortcutPolicy: ShortcutPolicy.requireCreate,
-    // );
+    await localNotifier.setup(
+      appName: 'Octopus',
+      // The parameter shortcutPolicy only works on Windows
+      shortcutPolicy: ShortcutPolicy.requireCreate,
+    );
   }
 
+  LocalNotification? last;
   @override
   Future<void> show(String title, String body) async {
-    var requestPermission = await QuickNotify.requestPermission();
-
-    QuickNotify.notify(
+    last?.destroy();
+    last = LocalNotification(
       title: title,
-      content: body,
+      body: body,
     );
+    last?.show();
   }
 }
 
