@@ -1,13 +1,50 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart' hide MenuItem;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/native_notify.dart';
 import 'package:octopus/page_chat.dart';
 import 'package:system_tray/system_tray.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'page_login.dart';
 
+class ReceivedNotification {
+  ReceivedNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.payload,
+  });
+
+  final int id;
+  final String? title;
+  final String? body;
+  final String? payload;
+}
+
+String? selectedNotificationPayload;
+
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // 必须加上这一行。
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = WindowOptions(
+    // size: Size(800, 600),
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.normal,
+  );
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
+  NativeNotify.init();
+
   runApp(const MyApp());
 }
 
@@ -27,7 +64,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   final SystemTray _systemTray = SystemTray();
-  final AppWindow _appWindow = AppWindow();
   final Menu _menuMain = Menu();
 
   Future<void> initSystemTray() async {
@@ -38,12 +74,12 @@ class _MyAppState extends State<MyApp> {
       MenuItemLable(
           label: 'Show',
           onClicked: (menuItem) {
-            _appWindow.show();
+            windowManager.show();
           }),
       MenuItemLable(
           label: 'Hide',
           onClicked: (menuItem) {
-            _appWindow.hide();
+            windowManager.hide();
           }),
       MenuItemLable(
         label: 'Exit',
@@ -64,7 +100,7 @@ class _MyAppState extends State<MyApp> {
     // handle system tray event
     _systemTray.registerSystemTrayEventHandler((eventName) {
       if (eventName == kSystemTrayEventClick) {
-        _appWindow.show();
+        windowManager.show();
       } else if (eventName == kSystemTrayEventRightClick) {
         _systemTray.popUpContextMenu();
       }

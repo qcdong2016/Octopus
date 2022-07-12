@@ -6,9 +6,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_context_menu_windows
   desktop_drop
   pasteboard
+  quick_notify
   screen_capturer
+  screen_retriever
   system_tray
   url_launcher_windows
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
