@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide MenuItem;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -109,14 +110,23 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme;
+
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      theme = ThemeData(primarySwatch: Colors.blue);
+    } else {
+      theme = ThemeData(
+        fontFamily: "Microsoft YaHei",
+        primarySwatch: Colors.blue,
+      );
+    }
+
     return MaterialApp(
       title: 'Octopus',
       builder: (BuildContext context, Widget? child) {
         return FlutterSmartDialog(child: child);
       },
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: theme,
       home: LoginPage(),
       routes: {
         "/chat": ((context) => ChatPage()),
