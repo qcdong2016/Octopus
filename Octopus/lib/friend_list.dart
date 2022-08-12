@@ -30,7 +30,11 @@ class _FriendList extends State<FriendList> {
         itemCount: Data.data.friends.length,
         itemBuilder: (BuildContext context, int index) {
           var user = Data.data.friends[index];
-          return FriendItem(user: user);
+          return EventWidget(
+              buidler: (BuildContext c) {
+                return FriendItem(user: user);
+              },
+              event: user);
         },
       ),
     );
