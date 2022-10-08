@@ -72,17 +72,17 @@ class _MyAppState extends State<MyApp> {
         Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png';
 
     _menuMain.buildFrom([
-      MenuItemLable(
+      MenuItemLabel(
           label: 'Show',
           onClicked: (menuItem) {
             windowManager.show();
           }),
-      MenuItemLable(
+      MenuItemLabel(
           label: 'Hide',
           onClicked: (menuItem) {
             windowManager.hide();
           }),
-      MenuItemLable(
+      MenuItemLabel(
         label: 'Exit',
         onClicked: (menuItem) {
           exit(0);

@@ -72,7 +72,7 @@ SPEC CHECKSUMS:
   desktop_context_menu_macos: 75dc0a4697165c567eeb0e4cae511d1ecd5131fc
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
-  FlutterMacOS: 57701585bf7de1b3fc2bb61f6378d73bbdea8424
+  FlutterMacOS: ae6af50a8ea7d6103d888583d46bd8328a7e9811
   local_notifier: e9506bc66fc70311e8bc7291fb70f743c081e4ff
   pasteboard: 9b69dba6fedbb04866be632205d532fe2f6b1d99
   path_provider_macos: 3c0c3b4b0d4a76d2bf989a913c2de869c5641a19
