@@ -82,7 +82,7 @@ flutter:
 
   assets:
     - assets/
-    - assets/expression/
+    - assets/qq/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

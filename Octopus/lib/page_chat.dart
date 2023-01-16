@@ -176,14 +176,25 @@ class _ChatPageState extends State<ChatPage> {
                         context: context1,
                         barrierColor: Colors.transparent,
                         transitionDuration: const Duration(milliseconds: 100),
-                        bodyBuilder: (context) => WeChatExpression((e) {
-                          input.controller.text += "[${e.name}]";
-                        }),
+                        bodyBuilder: (context) => WeChatExpression(
+                          (e) {
+                            input.controller.text += "[${e.name}]";
+                          },
+                          crossAxisCount: 12,
+                        ),
                         direction: PopoverDirection.bottom,
                         width: 500,
                         height: 300,
                         arrowHeight: 15,
                         arrowWidth: 30,
+                        shadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(85),
+                            offset: const Offset(0, 8),
+                            blurRadius: 15,
+                            spreadRadius: 0,
+                          ),
+                        ],
                       );
                     },
                   );

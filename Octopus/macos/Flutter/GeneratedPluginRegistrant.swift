@@ -13,7 +13,7 @@ import pasteboard
 import path_provider_macos
 import screen_capturer
 import screen_retriever
-import shared_preferences_macos
+import shared_preferences_foundation
 import system_tray
 import url_launcher_macos
 import window_manager
