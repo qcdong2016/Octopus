@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 
 class ChatInput extends StatefulWidget {
   TextEditingController controller = TextEditingController();
+  FocusNode focusNode = FocusNode();
   ChatInput({Key? key}) : super(key: key);
 
   @override
@@ -89,6 +90,7 @@ class _ChatInputState extends State<ChatInput> {
           controller: widget.controller,
           keyboardType: TextInputType.multiline,
           maxLines: 20,
+          focusNode: widget.focusNode,
           decoration: InputDecoration(
             filled: true,
             hoverColor: Colors.transparent,

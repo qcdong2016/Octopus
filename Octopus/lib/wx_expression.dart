@@ -16,26 +16,16 @@ class WeChatExpression extends StatelessWidget {
   ///一行表情数量
   final int crossAxisCount;
 
-  //纵轴间距
-  final double mainAxisSpacing;
-
-  //横轴间距
-  final double crossAxisSpacing;
-
-  ///子Widget宽高比例
-  final double childAspectRatio;
-
-  ///大小比例,值的大小与表情的大小成反比
-  final double bigSizeRatio;
-
   final CallClick _callClick;
+  late List<Expression> displayList;
+  final EdgeInsetsGeometry padding;
 
   WeChatExpression(this._callClick,
-      {this.crossAxisCount = 8,
-      this.mainAxisSpacing = 0.0,
-      this.crossAxisSpacing = 0.0,
-      this.childAspectRatio = 1.0,
-      this.bigSizeRatio = 10.0});
+      { 
+        required this.crossAxisCount, 
+      required this.displayList,
+      required this.padding,
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -47,21 +37,16 @@ class WeChatExpression extends StatelessWidget {
         child: Container(
           margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
           child: GridView.custom(
-            padding: EdgeInsets.fromLTRB(10, 4, 10, 4),
+            // padding: EdgeInsets.fromLTRB(10, 4, 10, 4),
+            padding:this.padding, //EdgeInsets.fromLTRB(10, 4, 10, 4),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
             ),
             childrenDelegate: SliverChildBuilderDelegate((context, position) {
-              return _getExpressionItemContainer(position);
-            }, childCount: ExpressionData.EXPRESSION_SIZE),
+              return AExpression(displayList[position], _callClick);
+            }, childCount: displayList.length),
           ),
         ));
-  }
-
-  ///获取表情列表
-  _getExpressionItemContainer(int index) {
-    var expressionPath = ExpressionData.expressionPath[index];
-    return AExpression(expressionPath, this._callClick);
   }
 }
 
@@ -113,7 +98,7 @@ class Expression {
 class ExpressionData {
   ///基础路径
   static final List<Expression> old = [
-        Expression('微笑', 'hehe.png'),
+    Expression('微笑', 'hehe.png'),
     Expression('撇嘴', 'piezui.png'),
     Expression('色', 'se.png'),
     Expression('发呆', 'fadai.png'),
@@ -410,8 +395,16 @@ class ExpressionData {
   ///kv
   static final Map<String, Expression> expressionKV = {};
 
+
+  static bool isInited = false;
+
   ///初始化
   static void init() {
+    if (isInited) {
+      return;
+    }
+
+    isInited = true;
     for (var value in expressionPath) {
       expressionKV[value.name] = value;
     }
@@ -420,10 +413,6 @@ class ExpressionData {
       expressionKV[value.name] = value;
     }
   }
-
-  ///表情总长度
-  // ignore: non_constant_identifier_names
-  static final int EXPRESSION_SIZE = expressionPath.length;
 }
 
 ///带有表情的文本
@@ -459,9 +448,7 @@ class ExpressionText extends StatelessWidget {
 
   ///使用正则解析表情文本,使用了Text.rich替换掉了Wrap
   _getContent() {
-    if (ExpressionData.expressionKV.length == 0) {
       ExpressionData.init();
-    }
     List<InlineSpan> stack = [];
 
     List<int> indexList = [];
@@ -517,67 +504,6 @@ class ExpressionText extends StatelessWidget {
       ));
     }
 
-    return stack;
-  }
-
-  ///获取内部
-  @Deprecated('已弃用,有些特殊字符会导致标错')
-  _getContent2() {
-    if (ExpressionData.expressionKV.length == 0) {
-      ExpressionData.init();
-    }
-
-    List<Widget> stack = [];
-
-    if (_text.length > 1024) {
-      stack.add(Text(
-        _text,
-        style: _textStyle,
-      ));
-      return stack;
-    }
-
-    String buin = '';
-    bool isExpression = false;
-    for (int a = 0; a < _text.length; a++) {
-      var substring = _text.substring(a, a + 1);
-      if (substring == '[') {
-        isExpression = true;
-        buin = '';
-      } else if (substring == ']' && isExpression) {
-        isExpression = false;
-        //添加一张图片
-        if (ExpressionData.expressionKV.containsKey(buin)) {
-          Expression? expressionKV = ExpressionData.expressionKV[buin];
-          if (expressionKV != null) {
-            stack.add(
-              Image(
-                image: expressionKV.asset,
-                width: 20.0,
-                height: 20.0,
-              ),
-            );
-          }
-        } else {
-          //添加文本
-          stack.add(Text(
-            substring,
-            style: _textStyle,
-          ));
-        }
-        buin = '';
-      } else {
-        if (isExpression) {
-          buin = buin + substring;
-        } else {
-          //添加文本
-          stack.add(Text(
-            substring,
-            style: _textStyle,
-          ));
-        }
-      }
-    }
     return stack;
   }
 }

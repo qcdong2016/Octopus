@@ -1,9 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/avatar.dart';
 import 'package:octopus/client.dart';
@@ -16,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:popover/popover.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'chat_input.dart';
 import 'line_input.dart';
@@ -103,6 +103,171 @@ class _ChatPageState extends State<ChatPage> {
         });
   }
 
+  List<Expression> favList = [];
+  OverlayEntry? _overlay = null;
+
+  Timer? _timer = null;
+  bool _isOnButton = false;
+  bool _isOnOverlay = false;
+
+  hideFavFace() {
+    _overlay?.remove();
+    _overlay = null;
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  leaveButton() {
+    _isOnButton = false;
+  }
+
+  leaveOverlay() {
+    _isOnOverlay = false;
+  }
+
+  loadFavList() async {
+    if (favList.length != 0) {
+      return;
+    }
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var list = prefs.getStringList("favList");
+    if (list == null) {
+      return;
+    }
+
+    ExpressionData.init();
+    
+    for (var name in list) {
+      var e = ExpressionData.expressionKV[name];
+      if (e != null) {
+        favList.add(e);
+      }
+    }
+  }
+
+  addToFav(ChatInput input, e) async {
+    await this.loadFavList();
+
+    favList.remove(e);
+
+    favList.insert(0, e);
+    if (favList.length > 16) {
+      favList = favList.sublist(0, 16);
+    }
+
+    List<String> list = [];
+    for (var e in favList) {
+      list.add(e.name);
+    }
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList("favList", list);
+
+    input.controller.value = TextEditingValue(
+        text: input.controller.text + "[${e.name}]",
+        selection: TextSelection.fromPosition(TextPosition(
+            affinity: TextAffinity.downstream,
+            offset: input.controller.text.length)));
+  }
+
+  requireFocus(ChatInput input) {
+    input.focusNode.requestFocus();
+    input.controller.value = TextEditingValue(
+        text: input.controller.text,
+        selection: TextSelection.fromPosition(TextPosition(
+            affinity: TextAffinity.downstream,
+            offset: input.controller.text.length)));
+  }
+
+   showFavFace(context1, ChatInput input)async {
+    if (_overlay != null) {
+      return;
+    }
+    await this.loadFavList();
+    if (this.favList.length == 0) {
+      return;
+    }
+
+    RenderBox renderBox = context1.findRenderObject();
+    var parentSize = renderBox.size;
+    var parentPosition = renderBox.localToGlobal(Offset.zero);
+    double width = 136;
+    double height = 144;
+
+    _isOnButton = true;
+
+    _timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
+      // print(["check", _isOnButton, _isOnOverlay]);
+
+      if (!_isOnButton && !_isOnOverlay) {
+        this.hideFavFace();
+        this.requireFocus(input);
+      }
+    });
+
+    _overlay = OverlayEntry(builder: (context) {
+      return Positioned(
+          top: parentPosition.dy - height + 6,
+          left: parentPosition.dx - width / 2 + parentSize.width / 2,
+          child: MouseRegion(
+              onEnter: (event) {
+                _isOnOverlay = true;
+              },
+              onExit: (event) {
+                _isOnOverlay = false;
+              },
+              child: Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                    border: Border.all(
+                        width: 1, color: Color.fromARGB(155, 98, 98, 98)),
+                  ),
+                  child: WeChatExpression(
+                    (e) {
+                      addToFav(input, e);
+                    },
+                    padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
+                    displayList: favList,
+                    crossAxisCount: 4,
+                  ))));
+    });
+    Overlay.of(context1)?.insert(_overlay!);
+  }
+
+  showFace(context1, ChatInput input) {
+    showPopover(
+      context: context1,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 100),
+      onPop: (() => requireFocus(input)),
+      bodyBuilder: (context) => WeChatExpression(
+        (e) {
+          addToFav(input, e);
+        },
+        padding: EdgeInsets.fromLTRB(10, 4, 10, 4),
+        displayList: ExpressionData.expressionPath,
+        crossAxisCount: 12,
+      ),
+      direction: PopoverDirection.bottom,
+      width: 500,
+      height: 300,
+      arrowHeight: 15,
+      arrowWidth: 30,
+      shadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(85),
+          offset: const Offset(0, 8),
+          blurRadius: 15,
+          spreadRadius: 0,
+        ),
+      ],
+    );
+  }
+
   Widget createRight() {
     if (Data.data.chatTarget.iD == 0) {
       return const Center(
@@ -164,40 +329,24 @@ class _ChatPageState extends State<ChatPage> {
               ),
               Builder(
                 builder: (context1) {
-                  return IconButton(
-                    icon: const Icon(Icons.tag_faces),
-                    iconSize: 30,
-                    color: Colors.grey,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    onPressed: () {
-                      showPopover(
-                        context: context1,
-                        barrierColor: Colors.transparent,
-                        transitionDuration: const Duration(milliseconds: 100),
-                        bodyBuilder: (context) => WeChatExpression(
-                          (e) {
-                            input.controller.text += "[${e.name}]";
-                          },
-                          crossAxisCount: 12,
-                        ),
-                        direction: PopoverDirection.bottom,
-                        width: 500,
-                        height: 300,
-                        arrowHeight: 15,
-                        arrowWidth: 30,
-                        shadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(85),
-                            offset: const Offset(0, 8),
-                            blurRadius: 15,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  return MouseRegion(
+                      onEnter: (event) {
+                        this.showFavFace(context1, input);
+                      },
+                      onExit: ((event) {
+                        this.leaveButton();
+                      }),
+                      child: IconButton(
+                        icon: const Icon(Icons.tag_faces),
+                        iconSize: 30,
+                        color: Colors.grey,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        onPressed: () {
+                          this.showFace(context1, input);
+                        },
+                      ));
                 },
               ),
               IconButton(
