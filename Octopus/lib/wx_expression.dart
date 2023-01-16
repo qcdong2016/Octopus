@@ -112,10 +112,8 @@ class Expression {
 ///数据类
 class ExpressionData {
   ///基础路径
-
-  ///表情路径
-  static final List<Expression> expressionPath = [
-    Expression('微笑', 'hehe.png'),
+  static final List<Expression> old = [
+        Expression('微笑', 'hehe.png'),
     Expression('撇嘴', 'piezui.png'),
     Expression('色', 'se.png'),
     Expression('发呆', 'fadai.png'),
@@ -215,8 +213,10 @@ class ExpressionData {
     Expression('發', 'fa.png'),
     Expression('福', 'fu.png'),
     Expression('鸡', 'ji.png'),
+  ];
 
-    
+  ///表情路径
+  static final List<Expression> expressionPath = [
     Expression('0', '0@2x.gif'),
     Expression('1', '1@2x.gif'),
     Expression('2', '2@2x.gif'),
@@ -413,6 +413,10 @@ class ExpressionData {
   ///初始化
   static void init() {
     for (var value in expressionPath) {
+      expressionKV[value.name] = value;
+    }
+
+    for (var value in old) {
       expressionKV[value.name] = value;
     }
   }
