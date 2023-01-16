@@ -24,6 +24,15 @@ jobs:
          channel: 'stable'
      - run: flutter config --enable-windows-desktop
      - run: flutter build windows
+     
+     - run: |
+          echo CACHE-PATH=${{ steps.flutter-action.outputs.CACHE-PATH }}
+          echo CACHE-KEY=${{ steps.flutter-action.outputs.CACHE-KEY }}
+          echo CHANNEL=${{ steps.flutter-action.outputs.CHANNEL }}
+          echo VERSION=${{ steps.flutter-action.outputs.VERSION }}
+          echo ARCHITECTURE=${{ steps.flutter-action.outputs.ARCHITECTURE }}
+       shell: bash
+     
      - name: Create Release
        uses: actions/create-release@v1
        env:
