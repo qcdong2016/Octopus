@@ -33,7 +33,9 @@ class _EventWidget extends State<EventWidget> {
   void initState() {
     super.initState();
     _block = widget.event.connect(() {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 }
