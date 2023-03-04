@@ -44,3 +44,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+lib/pb/
+server/pb/
+__debug_bin
+octopus.db

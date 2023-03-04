@@ -1,14 +1,13 @@
 package main
 
 import (
-	"errors"
+	"Octopus/pb"
 	"math/rand"
 	"net/http"
 	"path/filepath"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/qcdong2016/logs"
 )
 
 var (
@@ -31,6 +30,10 @@ func CrossOrigin(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func wrap[T any](t T) echo.HandlerFunc {
+	return GrpcHttpHandleFunc(t)
+}
+
 func main() {
 	rand.Seed(time.Now().Unix())
 
@@ -41,10 +44,11 @@ func main() {
 
 	e.Debug = true
 
-	e.Any("/regist", handleRegist, CrossOrigin)
 	e.GET("/chat", handleChat)
 	e.POST("/upFile", handleUpFile, CrossOrigin)
 	e.GET("/downFile", handleDownFile)
+
+	e.POST("/api/Public/*", wrap[pb.PublicServer](&PublicServer{}))
 
 	dispatcher.Add("login", onLogin)
 	dispatcher.Add("ping", onPing)
@@ -52,36 +56,6 @@ func main() {
 	dispatcher.Add("chat.image", onChatImage)
 
 	e.Start(":7457")
-}
-
-func handleRegist(c echo.Context) error {
-
-	arg := struct {
-		Nickname string
-		Password string
-		Avatar   string
-	}{}
-
-	if err := c.Bind(&arg); err != nil {
-		return err
-	}
-
-	if arg.Nickname == "" || arg.Password == "" {
-		return errors.New("empty")
-	}
-
-	if arg.Avatar == "" {
-		arg.Avatar = RandAvatar(arg.Nickname)
-	}
-
-	logs.Info("regist", arg)
-
-	u, err := dataMgr.Regist(arg.Nickname, arg.Password, arg.Avatar)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, u.Id)
 }
 
 func handleChat(c echo.Context) error {

@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/client_http.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
+import 'package:octopus/pb/msg.pb.dart';
 
 import 'client.dart';
 import 'line_input.dart';
@@ -139,16 +141,16 @@ class _LoginPageState extends State<LoginPage> {
                           TextButton(
                             child: Text('确定'),
                             onPressed: () async {
-                              print('http://${Data.server}/regist');
-                              var resp = await Dio()
-                                  .post('http://${Data.server}/regist', data: {
-                                'Nickname': nickctrl.text,
-                                'Password': passctrl.text,
-                              });
-
-                              Data.setUP(nickctrl.text, passctrl.text);
-
-                              Navigator.of(context).pop();
+                              try {
+                                await PublicApi(ClientHttp()).regist(
+                                    null,
+                                    RegistReq(
+                                        nickname: nickctrl.text,
+                                        password: passctrl.text));
+                                Navigator.of(context).pop();
+                              } catch (err) {
+                                SmartDialog.showToast(err.toString());
+                              }
                             },
                           ),
                         ],

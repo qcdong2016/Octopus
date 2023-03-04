@@ -1,17 +1,21 @@
-import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/pb/msg.pb.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:protobuf/protobuf.dart';
 
 import 'data.dart';
 
-typedef CB = Function(String?, dynamic);
+typedef CB = Function(Uint8List);
+typedef CB1 = Function(String, dynamic);
 
 enum DownStatus {
   OK,
@@ -21,7 +25,7 @@ enum DownStatus {
   Error,
 }
 
-class Client {
+class Client extends RpcClient {
   static final Client instance = Client();
 
   WebSocket? _webSocket;
@@ -49,7 +53,7 @@ class Client {
         retryCount++;
         _doLogin();
       } else if (_webSocket!.readyState == WebSocket.open) {
-        doSend("ping", {}, log: false);
+        doSend("ping", {});
       }
     });
     _doLogin();
@@ -85,9 +89,11 @@ class Client {
     }
   }
 
-  static send(String route, data, {CB? cb}) {
-    instance.doSend(route, data, cb: cb);
+  static send(String route, data, {CB1? cb}) {
+    // instance.doSend(route, data, cb: cb);
   }
+
+  doSend(String route, data) {}
 
 // 1 取消，2 失败，0 成功, 3 已经存在 4 下载中
   static Future<DownStatus> saveFileAs(Message msg) async {
@@ -265,46 +271,38 @@ class Client {
   }
 
   dispatch(dynamic message) {
-    var index = message.indexOf("}");
-    var msg = jsonDecode(message.substring(0, index + 1));
+    var pkg = Package.fromBuffer(message);
 
-    print(["recv", message]);
-
-    var route = msg['route'];
-
-    if (msg["err"] != null) {
-      // msgBox.show(msg.err);
-      if (route == "login") {
+    if (pkg.hasError()) {
+      if (pkg.method == "login") {
         disconnect();
       }
-      return SmartDialog.showToast(msg["err"]);
-      // print(msg["err"]);
+      return SmartDialog.showToast(pkg.error);
     }
 
-    var data = jsonDecode(message.substring(index + 1));
-
-    if (msg["cbid"] != null) {
-      var cb = takeCB(msg["cbid"]);
-      cb!(msg["err"], data);
+    if (pkg.hasCallback()) {
+      var cb = takeCB(pkg.callback.toInt());
+      cb!(Uint8List.fromList(pkg.body));
+      return;
     }
 
-    if (route != null) {
-      var cbinfo = getHandler(route);
+    if (pkg.hasMethod()) {
+      var cbinfo = getHandler(pkg.method);
       if (cbinfo == null) {
-        print(["no handler", route]);
+        print(["no handler", pkg.method]);
         return;
       }
 
-      cbinfo["func"](msg["err"], data);
+      cbinfo["func"](Uint8List.fromList(pkg.body));
       if (cbinfo["autodelete"]) {
-        delHandler(route);
+        delHandler(pkg.method);
       }
     }
   }
 
   Map<String, dynamic> _handler = {};
 
-  addHandler(String key, CB cb, bool autodelete) {
+  addHandler(String key, CB1 cb, bool autodelete) {
     _handler[key] = {"func": cb, "autodelete": autodelete};
   }
 
@@ -314,31 +312,6 @@ class Client {
 
   getHandler(key) {
     return _handler[key];
-  }
-
-  doSend(String route, data, {CB? cb, bool? log}) {
-    var pk = pack(route, data, cb: cb);
-    if (log == null || log == true) {
-      print(['send', pk]);
-    }
-    _webSocket?.add(pk);
-  }
-
-  String pack(String route, data, {CB? cb}) {
-    Map<String, dynamic> pkg = {
-      "route": route,
-    };
-
-    if (cb != null) {
-      pkg["cbid"] = addCB(cb);
-    }
-
-    var args = jsonEncode(data);
-    pkg["v"] = 2;
-    pkg["argsSize"] = args.length;
-
-    var txt = jsonEncode(pkg) + args;
-    return txt;
   }
 
   final Map<int, CB> _cbMap = {};
@@ -352,5 +325,39 @@ class Client {
 
   CB? takeCB(int id) {
     return _cbMap.remove(id);
+  }
+
+  @override
+  Future<T> invoke<T extends GeneratedMessage>(
+      ClientContext? ctx,
+      String serviceName,
+      String methodName,
+      GeneratedMessage request,
+      T emptyResponse) {
+    final com = Completer<T>();
+
+    cb(data) {
+      emptyResponse.mergeFromBuffer(data);
+      com.complete(emptyResponse);
+    }
+
+    var buf = pack2(serviceName, methodName, request, cb: cb);
+
+    _webSocket?.add(buf);
+
+    return com.future;
+  }
+
+  Uint8List pack2(
+      String serviceName, String methodName, GeneratedMessage request,
+      {CB? cb}) {
+    Package pkg = Package(
+        method: serviceName + "/" + methodName, body: request.writeToBuffer());
+
+    if (cb != null) {
+      pkg.callback = Int64(addCB(cb));
+    }
+
+    return pkg.writeToBuffer();
   }
 }

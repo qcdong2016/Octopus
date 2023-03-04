@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:octopus/data.dart';
-import 'package:badges/badges.dart';
 import 'package:octopus/event/event_widget.dart';
-
+import 'package:badges/badges.dart' as badges;
 import 'avatar.dart';
 
 class FriendItem extends StatefulWidget {
@@ -52,7 +51,7 @@ class _FriendItem extends State<FriendItem> {
                 ),
               ),
             ),
-            Badge(
+            badges.Badge(
               badgeContent: Text(widget._user.unread.toString()),
               showBadge: widget._user.unread > 0,
             ),

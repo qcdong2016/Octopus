@@ -1,0 +1,18 @@
+---
+# 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
+Language:	Proto
+
+BraceWrapping:   
+  # class定义后面
+  AfterClass:	false
+  # enum定义后面
+  AfterEnum: false
+
+# 缩进宽度
+IndentWidth:	4
+# 连续赋值时，对齐所有等号
+AlignConsecutiveAssignments:	true
+# 连续声明时，对齐所有声明的变量名
+AlignConsecutiveDeclarations:	true
+
+AllowShortFunctionsOnASingleLine:	None

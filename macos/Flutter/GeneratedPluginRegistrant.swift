@@ -10,7 +10,7 @@ import desktop_drop
 import flutter_local_notifications
 import local_notifier
 import pasteboard
-import path_provider_macos
+import path_provider_foundation
 import screen_capturer
 import screen_retriever
 import shared_preferences_foundation
