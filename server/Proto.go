@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"Octopus/pb"
+	"time"
+)
 
 // docs
 
@@ -41,25 +44,16 @@ var default_team_id = int64(1000000)
 
 // msgs
 
-type Friend struct {
-	ID       int64
-	Nickname string
-	Avatar   string
-	Online   bool
-	Password string
-	Group    bool
-}
-
-func (u *User) ToFriend() *Friend {
-	return &Friend{
+func (u *User) ToFriend() *pb.Friend {
+	return &pb.Friend{
 		ID:       u.Id,
 		Nickname: u.Nickname,
 		Avatar:   u.Avatar,
 	}
 }
 
-func (u *Team) ToFriend() *Friend {
-	return &Friend{
+func (u *Team) ToFriend() *pb.Friend {
+	return &pb.Friend{
 		ID:       u.Id,
 		Nickname: u.Nickname,
 		Avatar:   u.Avatar,
@@ -70,11 +64,6 @@ func (u *Team) ToFriend() *Friend {
 type ReqLogin struct {
 	ID       interface{}
 	Password string
-}
-
-type RespLogin struct {
-	Me      *Friend
-	Friends []*Friend
 }
 
 type ReqChatTextP2P struct {

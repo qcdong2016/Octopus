@@ -18,26 +18,26 @@ func onPing(conn *WsConn, pkg *Package) error {
 }
 
 func onLogin(conn *WsConn, pkg *Package) error {
-	msg := &ReqLogin{}
+	// msg := &ReqLogin{}
 
-	if err := pkg.Bind(msg); err != nil {
-		return err
-	}
+	// if err := pkg.Bind(msg); err != nil {
+	// 	return err
+	// }
 
-	if u, err := dataMgr.Login(msg); err != nil {
-		conn.Send("login", err, nil)
-		return nil
-	} else {
-		conn.UserID = u.ID
-		conn.SetAuthed()
-		conn.Send("login", RespLogin{
-			Me:      u,
-			Friends: dataMgr.GetFriends(u.ID),
-		}, nil)
+	// if u, err := dataMgr.Login(msg); err != nil {
+	// 	conn.Send("login", err, nil)
+	// 	return nil
+	// } else {
+	// 	conn.UserID = u.ID
+	// 	conn.SetAuthed()
+	// 	conn.Send("login", RespLogin{
+	// 		Me:      u,
+	// 		Friends: dataMgr.GetFriends(u.ID),
+	// 	}, nil)
 
-		server.Add(conn.UserID, conn)
-		server.BroadcastExcept("friendOnline", u, u.ID)
-	}
+	// 	server.Add(conn.UserID, conn)
+	// 	server.BroadcastExcept("friendOnline", u, u.ID)
+	// }
 	return nil
 }
 
@@ -56,7 +56,7 @@ func onChatText(conn *WsConn, pkg *Package) error {
 	}
 
 	dataMgr.SendTo(conn.UserID, msg.To, "chat.text", msg)
-	conn.Send(pkg.CB, msg, nil)
+	conn.Send(pkg.CB, msg)
 
 	return nil
 }
@@ -86,7 +86,7 @@ func onChatImage(conn *WsConn, pkg *Package) error {
 	}
 
 	dataMgr.SendTo(conn.UserID, req.To, "chat.file", msg)
-	conn.Send(pkg.CB, msg, nil)
+	conn.Send(pkg.CB, msg)
 
 	return nil
 }

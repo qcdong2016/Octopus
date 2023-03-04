@@ -8,6 +8,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
+import 'package:octopus/native.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -39,20 +40,20 @@ class _FileMessageItemState extends State<FileMessageItem> {
             ContextMenuItem(
               title: '另存为',
               onTap: () {
-                Client.saveFileAs(widget.msg);
+                NativeUtil.saveFileAs(widget.msg);
               },
             ),
             ContextMenuItem(
               title: '查找',
               onTap: () {
-                Client.downloadAndSeek(widget.msg);
+                NativeUtil.downloadAndSeek(widget.msg);
               },
             ),
           ]);
 
           menu?.onTap?.call();
         } else {
-          Client.downloadAndSeek(widget.msg);
+          NativeUtil.downloadAndSeek(widget.msg);
         }
         shouldReact = false;
       },

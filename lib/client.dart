@@ -7,22 +7,21 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/pb/comm.pb.dart';
 import 'package:octopus/pb/msg.pb.dart';
+import 'package:octopus/pb/msg.pbserver.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:protobuf/protobuf.dart';
-
+import 'dart:convert';
 import 'data.dart';
 
-typedef CB = Function(Uint8List);
-typedef CB1 = Function(String, dynamic);
+typedef CB = Function(String, dynamic);
 
-enum DownStatus {
-  OK,
-  Cancel,
-  Downloading,
-  Exist,
-  Error,
+class RequestHold {
+  RequestHold({required this.cb, required this.msg});
+  CB cb;
+  GeneratedMessage msg;
 }
 
 class Client extends RpcClient {
@@ -35,8 +34,16 @@ class Client extends RpcClient {
   int retryCount = 0;
   bool _isLogin = false;
 
-  void login(String nickname, String password) async {
+  late S2CServiceBase _handler;
+
+  void login(String nickname, String password, S2CServiceBase handler) async {
+    this._handler = handler;
     Data.setUP(nickname, password);
+    _connect();
+  }
+
+  void autoConnect() {
+    _timer?.cancel();
 
     _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_webSocket == null && !_isLogin) {
@@ -51,12 +58,11 @@ class Client extends RpcClient {
               msg: "已掉线，重连中。。", maskColor: Colors.black.withOpacity(0.5));
         }
         retryCount++;
-        _doLogin();
+        _connect();
       } else if (_webSocket!.readyState == WebSocket.open) {
         doSend("ping", {});
       }
     });
-    _doLogin();
   }
 
   void disconnect() {
@@ -64,22 +70,19 @@ class Client extends RpcClient {
     _webSocket = null;
   }
 
-  Future<void> _doLogin() async {
+  Future<void> _connect() async {
     _webSocket?.close();
 
-    _isLogin = true;
-
     try {
-      _webSocket = await WebSocket.connect("ws://" + Data.server + "/chat");
+      _webSocket = await WebSocket.connect(
+          "ws://${Data.server}/chat?u=${Data.loginData.nickname}&p=${Data.loginData.password}");
       _webSocket?.listen(
         dispatch,
         onDone: () => _webSocket = null,
       );
 
-      doSend("login", {
-        "ID": Data.data.me.nickname,
-        "Password": Data.data.me.password,
-      });
+      _isLogin = true;
+
       if (retryCount != 0) {
         SmartDialog.dismiss();
       }
@@ -89,140 +92,11 @@ class Client extends RpcClient {
     }
   }
 
-  static send(String route, data, {CB1? cb}) {
+  static send(String route, data, {CB? cb}) {
     // instance.doSend(route, data, cb: cb);
   }
 
   doSend(String route, data) {}
-
-// 1 取消，2 失败，0 成功, 3 已经存在 4 下载中
-  static Future<DownStatus> saveFileAs(Message msg) async {
-    String? result = await FilePicker.platform.saveFile(
-      fileName: msg.filename,
-      dialogTitle: "保存文件",
-      lockParentWindow: true,
-    );
-    if (result == null) {
-      return DownStatus.Cancel;
-    }
-
-    return await saveFile(msg, File(result));
-  }
-
-  static downloadAndSeek(Message msg) async {
-    var file = await getSaveFile(msg, false);
-
-    var before = DateTime.now();
-    var status = await saveFileDefault(msg);
-
-    if (status != DownStatus.OK && status != DownStatus.Exist) {
-      return;
-    }
-
-    var after = DateTime.now();
-
-    if (after.difference(before).inMilliseconds > 2000) {
-      return;
-    }
-
-    await seekFile(file.path);
-  }
-
-  static downloadAndOpen(Message msg) async {
-    var status = await saveFileDefault(msg);
-    if (status != DownStatus.OK && status != DownStatus.Exist) {
-      return;
-    }
-
-    if (Platform.isMacOS) {
-      List<String> arguments = [msg.savepath];
-      Process.run(
-        'open',
-        arguments,
-      );
-    } else {
-      var path = msg.savepath.replaceAll("/", "\\");
-      List<String> arguments = ['/k', 'explorer.exe $path'];
-      Process.run(
-        'cmd',
-        arguments,
-      );
-    }
-  }
-
-  static Future<File> getSaveFile(Message msg, bool dup) async {
-    if (msg.savepath != "") {
-      return File(msg.savepath);
-    }
-
-    Directory tempDir = await getApplicationDocumentsDirectory();
-    var dir = "${tempDir.path}/Octopus";
-    var file = File('$dir/${msg.filename}');
-
-    var index = 1;
-    while (file.existsSync()) {
-      var base = path.basename(msg.filename);
-      var ext = path.extension(msg.filename);
-      file = File('$dir/${base + '_' + index.toString() + ext}');
-      index++;
-    }
-
-    return file;
-  }
-
-  static Future<DownStatus> saveFileDefault(Message msg) async {
-    File file = await getSaveFile(msg, false);
-    return await saveFile(msg, file);
-  }
-
-  static Future<DownStatus> saveFile(Message msg, File saveFile) async {
-    if (!saveFile.existsSync()) {
-      saveFile.createSync(recursive: true);
-    } else {
-      return DownStatus.Exist;
-    }
-
-    if (msg.downloading) {
-      return DownStatus.Downloading;
-    }
-
-    msg.downloading = true;
-
-    var url = "http://${Data.server}/downFile?file=${msg.url}";
-    Response response = await Dio().download(url, saveFile.path,
-        onReceiveProgress: (received, total) {
-      msg.progress = received / total;
-    });
-
-    msg.downloading = false;
-    msg.savepath = saveFile.path;
-
-    if (response.statusCode != 200) {
-      return DownStatus.Error;
-    }
-
-    return DownStatus.OK;
-  }
-
-  static seekFile(String filepath) {
-    if (filepath == "") {
-      return;
-    }
-    if (Platform.isMacOS) {
-      List<String> arguments = ['-R', filepath];
-      Process.run(
-        'open',
-        arguments,
-      );
-    } else {
-      var path = filepath.replaceAll("/", "\\");
-      List<String> arguments = ['/k', 'explorer.exe /select,$path'];
-      Process.run(
-        'cmd',
-        arguments,
-      );
-    }
-  }
 
   static _doSendFile(String type, String filename, Message msg) async {
     var url =
@@ -271,59 +145,37 @@ class Client extends RpcClient {
   }
 
   dispatch(dynamic message) {
-    var pkg = Package.fromBuffer(message);
+    var data = S2CData.fromBuffer(message);
 
-    if (pkg.hasError()) {
-      if (pkg.method == "login") {
-        disconnect();
+    if (data.hasCallback()) {
+      var cb = takeCB(data.callback.toInt());
+      if (cb != null) {
+        cb.msg.mergeFromBuffer(data.body);
+        cb.cb(data.error, cb.msg);
+        print(["Recv", data.callback, cb.msg.toProto3Json()]);
+      } else {
+        print("callback not found.");
       }
-      return SmartDialog.showToast(pkg.error);
-    }
+    } else {
+      var req = _handler.createRequest(data.method);
+      req.mergeFromBuffer(data.body);
 
-    if (pkg.hasCallback()) {
-      var cb = takeCB(pkg.callback.toInt());
-      cb!(Uint8List.fromList(pkg.body));
-      return;
-    }
+      print(["Recv", data.method, req.toProto3Json()]);
 
-    if (pkg.hasMethod()) {
-      var cbinfo = getHandler(pkg.method);
-      if (cbinfo == null) {
-        print(["no handler", pkg.method]);
-        return;
-      }
-
-      cbinfo["func"](Uint8List.fromList(pkg.body));
-      if (cbinfo["autodelete"]) {
-        delHandler(pkg.method);
-      }
+      _handler.handleCall(ServerContext(), data.method, req);
     }
   }
 
-  Map<String, dynamic> _handler = {};
-
-  addHandler(String key, CB1 cb, bool autodelete) {
-    _handler[key] = {"func": cb, "autodelete": autodelete};
-  }
-
-  delHandler(key) {
-    _handler.remove(key);
-  }
-
-  getHandler(key) {
-    return _handler[key];
-  }
-
-  final Map<int, CB> _cbMap = {};
+  final Map<int, RequestHold> _cbMap = {};
   int _cbIndex = 0;
 
-  int addCB(CB cb) {
+  int addCB(RequestHold cb) {
     _cbIndex++;
     _cbMap[_cbIndex] = cb;
     return _cbIndex;
   }
 
-  CB? takeCB(int id) {
+  RequestHold? takeCB(int id) {
     return _cbMap.remove(id);
   }
 
@@ -336,28 +188,21 @@ class Client extends RpcClient {
       T emptyResponse) {
     final com = Completer<T>();
 
-    cb(data) {
-      emptyResponse.mergeFromBuffer(data);
-      com.complete(emptyResponse);
+    cb(err, data) {
+      if (err != "") {
+        com.completeError(err);
+      } else {
+        com.complete(data);
+      }
     }
 
-    var buf = pack2(serviceName, methodName, request, cb: cb);
-
-    _webSocket?.add(buf);
-
-    return com.future;
-  }
-
-  Uint8List pack2(
-      String serviceName, String methodName, GeneratedMessage request,
-      {CB? cb}) {
-    Package pkg = Package(
+    C2SData pkg = C2SData(
         method: serviceName + "/" + methodName, body: request.writeToBuffer());
 
-    if (cb != null) {
-      pkg.callback = Int64(addCB(cb));
-    }
+    pkg.callback = Int64(addCB(RequestHold(cb: cb, msg: emptyResponse)));
 
-    return pkg.writeToBuffer();
+    _webSocket?.add(pkg.writeToBuffer());
+
+    return com.future;
   }
 }

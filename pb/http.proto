@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "pb/comm.proto";
+
+message RegistReq {
+    string Nickname = 1;
+    string Password = 2;
+    string Avatar   = 3;
+}
+
+service Public {
+    rpc Regist(RegistReq) returns (Empty);
+}

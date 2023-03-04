@@ -1,11 +1,13 @@
 package main
 
 import (
+	"Octopus/pb"
 	"net"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 	"github.com/qcdong2016/logs"
 )
 
@@ -36,7 +38,7 @@ func NewServer() *Server {
 	return svr
 }
 
-func (this *Server) OnRecv(conn *WsConn, buf []byte) error {
+func (s *Server) OnRecv(conn *WsConn, buf []byte) error {
 
 	pkg, err := NewPackage(conn.UserID, buf)
 	if err != nil {
@@ -46,81 +48,97 @@ func (this *Server) OnRecv(conn *WsConn, buf []byte) error {
 	return dispatcher.Dispatch(conn, pkg)
 }
 
-func (this *Server) onNewConnection(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) onNewConnection(c echo.Context, w http.ResponseWriter, r *http.Request) error {
 
-	conn, err := this.upgrader.Upgrade(w, r, nil)
+	conn, err := s.upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
 		return err
 	}
 
-	connection := NewWsConn(conn, this)
+	u := c.QueryParam("u")
+	p := c.QueryParam("p")
+
+	connection := NewWsConn(conn, s)
 	defer connection.Close()
 
-	logs.Info("ws.from", "IP", connection.IP)
+	logs.Info("ws.from", "IP", conn.RemoteAddr().String())
+	if user, err := dataMgr.Login(u, p); err == nil {
 
-	this.waitGroup.Add(1)
-	connection.Pump()
+		connection.SetAuthed()
+		connection.UserID = user.ID
 
-	if connection.UserID != 0 {
-		this.Del(connection.UserID)
+		connection.Send("Login", &pb.OnLogin{
+			Me:      user,
+			Friends: dataMgr.GetFriends(user.ID),
+		})
+
+		s.Del(connection.UserID)
 		dataMgr.Logout(connection.UserID)
-		this.BroadcastExcept("friendOffline", connection.UserID, connection.UserID)
-	}
+		s.BroadcastExcept("friendOffline", connection.UserID, connection.UserID)
 
-	logs.Info("ws.close", "IP", connection.IP)
-	this.waitGroup.Done()
+		s.waitGroup.Add(1)
+		connection.Pump()
+
+		logs.Info("ws.close", "IP", connection.IP)
+		s.waitGroup.Done()
+
+	} else {
+		connection.SendNow("Login", &pb.OnLogin{
+			Msg: err.Error(),
+		})
+	}
 
 	return nil
 }
 
-func (this *Server) Add(userid int64, conn *WsConn) {
-	this.mutex.Lock()
-	this.conns[userid] = conn
-	this.mutex.Unlock()
+func (s *Server) Add(userid int64, conn *WsConn) {
+	s.mutex.Lock()
+	s.conns[userid] = conn
+	s.mutex.Unlock()
 }
 
-func (this *Server) Del(userid int64) {
-	this.mutex.Lock()
-	delete(this.conns, userid)
-	this.mutex.Unlock()
+func (s *Server) Del(userid int64) {
+	s.mutex.Lock()
+	delete(s.conns, userid)
+	s.mutex.Unlock()
 }
 
-func (this *Server) Stop() {
-	this.listener.Close()
-	this.httpServer.Close()
-	<-this.finished
-	for _, conn := range this.conns {
+func (s *Server) Stop() {
+	s.listener.Close()
+	s.httpServer.Close()
+	<-s.finished
+	for _, conn := range s.conns {
 		conn.Close()
 	}
-	this.waitGroup.Wait()
+	s.waitGroup.Wait()
 }
 
-func (this *Server) Broadcast(route, msg interface{}, data []byte) {
-	this.mutex.Lock()
-	defer this.mutex.Unlock()
+func (s *Server) Broadcast(route, msg any) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	for _, p := range this.conns {
-		p.Send(route, msg, data)
+	for _, p := range s.conns {
+		p.Send(route, msg)
 	}
 }
 
-func (this *Server) BroadcastExcept(route, msg interface{}, except int64) {
-	this.mutex.Lock()
-	defer this.mutex.Unlock()
+func (s *Server) BroadcastExcept(route, msg interface{}, except int64) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	for _, p := range this.conns {
+	for _, p := range s.conns {
 		if p.UserID != except {
-			p.Send(route, msg, nil)
+			p.Send(route, msg)
 		}
 	}
 }
 
-func (this *Server) Get(UserID int64) *WsConn {
-	this.mutex.Lock()
-	defer this.mutex.Unlock()
+func (s *Server) Get(UserID int64) *WsConn {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	conn, ok := this.conns[UserID]
+	conn, ok := s.conns[UserID]
 	if ok {
 		return conn
 	}

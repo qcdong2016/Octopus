@@ -31,24 +31,6 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
-    Client.instance.addHandler("chat.text", (err, data) {
-      Message msg = Message().fromJson(data);
-      Data.data.addMessage(msg);
-    }, false);
-
-    Client.instance.addHandler("chat.file", (err, data) {
-      Message msg = Message().fromJson(data);
-      Data.data.addMessage(msg);
-    }, false);
-
-    Client.instance.addHandler("friendOnline", (err, data) {
-      Data.data.setUserOnline(User().fromJson(data));
-    }, false);
-
-    Client.instance.addHandler("friendOffline", (err, data) {
-      Data.data.setUserOffline(data);
-    }, false);
-
     super.initState();
   }
 
@@ -137,7 +119,7 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     ExpressionData.init();
-    
+
     for (var name in list) {
       var e = ExpressionData.expressionKV[name];
       if (e != null) {
@@ -180,7 +162,7 @@ class _ChatPageState extends State<ChatPage> {
             offset: input.controller.text.length)));
   }
 
-   showFavFace(context1, ChatInput input)async {
+  showFavFace(context1, ChatInput input) async {
     if (_overlay != null) {
       return;
     }

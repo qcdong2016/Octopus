@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message Empty {
+}
+
+message S2CData {
+    string Method   = 1;
+    bytes  Body     = 2;
+    int64  Callback = 3;
+    string Error    = 4;
+}
+
+message C2SData {
+    string Method   = 1;
+    bytes  Body     = 2;
+    int64  Callback = 3;
+}

@@ -59,7 +59,8 @@ func main() {
 }
 
 func handleChat(c echo.Context) error {
-	return server.onNewConnection(c.Response(), c.Request())
+
+	return server.onNewConnection(c, c.Response(), c.Request())
 }
 
 func handleDownFile(c echo.Context) error {

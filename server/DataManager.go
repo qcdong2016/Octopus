@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Octopus/pb"
 	"errors"
 	"os"
 	"strconv"
@@ -8,13 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/qcdong2016/logs"
 	"github.com/robfig/cron"
 )
 
 type DataManager struct {
-	users map[int64]*Friend
-	teams map[int64]*Friend
+	users map[int64]*pb.Friend
+	teams map[int64]*pb.Friend
 
 	DB *XormDB
 
@@ -24,8 +24,8 @@ type DataManager struct {
 func NewDataManager() *DataManager {
 	d := &DataManager{}
 
-	d.users = map[int64]*Friend{}
-	d.teams = map[int64]*Friend{}
+	d.users = map[int64]*pb.Friend{}
+	d.teams = map[int64]*pb.Friend{}
 
 	d.DB = NewDB("octopus.db")
 
@@ -38,10 +38,10 @@ func NewDataManager() *DataManager {
 }
 
 type FriendAble interface {
-	ToFriend() *Friend
+	ToFriend() *pb.Friend
 }
 
-func loadAll[T FriendAble](d *DataManager, to map[int64]*Friend, online bool) {
+func loadAll[T FriendAble](d *DataManager, to map[int64]*pb.Friend, online bool) {
 	all := []T{}
 	err := d.DB.Find(&all)
 	if err != nil {
@@ -55,7 +55,7 @@ func loadAll[T FriendAble](d *DataManager, to map[int64]*Friend, online bool) {
 	}
 }
 
-func nextIdOf(m map[int64]*Friend, rg []int64) int64 {
+func nextIdOf(m map[int64]*pb.Friend, rg []int64) int64 {
 	var userid int64
 
 	for {
@@ -141,7 +141,7 @@ func (d *DataManager) Logout(uid int64) {
 	}
 }
 
-func (d *DataManager) Get(id int64) *Friend {
+func (d *DataManager) Get(id int64) *pb.Friend {
 
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -154,7 +154,7 @@ func (d *DataManager) Get(id int64) *Friend {
 	return nil
 }
 
-func (d *DataManager) findUserByNick(nick string) *Friend {
+func (d *DataManager) findUserByNick(nick string) *pb.Friend {
 	for _, u := range d.users {
 		if u.Nickname == nick {
 			return u
@@ -163,36 +163,30 @@ func (d *DataManager) findUserByNick(nick string) *Friend {
 	return nil
 }
 
-func (d *DataManager) Login(msg *ReqLogin) (*Friend, error) {
+func (d *DataManager) Login(idtxt, p string) (*pb.Friend, error) {
 
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
 	var userid int64 = -1
 
-	switch val := msg.ID.(type) {
-	case float64:
-		userid = int64(val)
-	case string:
-		val = strings.TrimSpace(val)
-		logs.Info(val)
+	val := strings.TrimSpace(idtxt)
 
-		testID, err := strconv.ParseInt(val, 10, 64)
-		if err != nil {
-			testID = -1
-		}
-		_, ok := d.users[testID]
-		if !ok {
-			testID = -1
-		} else {
-			userid = testID
-		}
+	testID, err := strconv.ParseInt(val, 10, 64)
+	if err != nil {
+		testID = -1
+	}
+	_, ok := d.users[testID]
+	if !ok {
+		testID = -1
+	} else {
+		userid = testID
+	}
 
-		if testID == -1 {
-			u := d.findUserByNick(strings.TrimSpace(val))
-			if u != nil {
-				userid = u.ID
-			}
+	if testID == -1 {
+		u := d.findUserByNick(strings.TrimSpace(val))
+		if u != nil {
+			userid = u.ID
 		}
 	}
 
@@ -202,13 +196,13 @@ func (d *DataManager) Login(msg *ReqLogin) (*Friend, error) {
 	}
 
 	u := User{}
-	_, err := d.DB.Table(u).Where("Id=?", userid).Get(&u)
+	_, err = d.DB.Table(u).Where("Id=?", userid).Get(&u)
 
 	if err != nil {
 		return nil, errors.New("登陆失败")
 	}
 
-	if u.Password != msg.Password {
+	if u.Password != p {
 		return nil, errors.New("密码错误")
 	}
 
@@ -217,11 +211,11 @@ func (d *DataManager) Login(msg *ReqLogin) (*Friend, error) {
 	return f, nil
 }
 
-func (d *DataManager) GetFriends(user int64) []*Friend {
+func (d *DataManager) GetFriends(user int64) []*pb.Friend {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	friends := make([]*Friend, 0, len(d.users))
+	friends := make([]*pb.Friend, 0, len(d.users))
 
 	for _, u := range d.users {
 		if u.ID != user {
@@ -268,7 +262,7 @@ func (d *DataManager) SendTo(sender, to int64, route, msg interface{}) {
 	} else {
 		user := server.Get(to)
 		if user != nil {
-			user.Send(route, msg, nil)
+			user.Send(route, msg)
 		}
 	}
 }
@@ -281,7 +275,7 @@ func (d *DataManager) SendToTeam(sender, to int64, route, msg interface{}) {
 		if one.User != sender {
 			user := server.Get(one.User)
 			if user != nil {
-				user.Send(route, msg, nil)
+				user.Send(route, msg)
 			}
 		}
 	}

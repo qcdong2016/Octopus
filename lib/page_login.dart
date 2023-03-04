@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/client_handler.dart';
 import 'package:octopus/client_http.dart';
 import 'package:octopus/data.dart';
+import 'package:octopus/event/event.dart';
 import 'package:octopus/event/event_widget.dart';
+import 'package:octopus/pb/http.pb.dart';
 import 'package:octopus/pb/msg.pb.dart';
 
 import 'client.dart';
@@ -22,14 +25,25 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  EventBlock? _block;
+
   @override
   void initState() {
     Data.init(() {
-      _usernameController.text = Data.data.me.nickname;
-      _passwordController.text = Data.data.me.password;
+      _usernameController.text = Data.loginData.nickname;
+      _passwordController.text = Data.loginData.password;
     });
-
+    _block = Data.onLogin.connect(() {
+      Data.setUP(_usernameController.text, _passwordController.text);
+      Navigator.of(context).pushNamed("/chat");
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    Data.onLogin.disconnect(_block);
+    super.dispose();
   }
 
   @override
@@ -147,6 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                                     RegistReq(
                                         nickname: nickctrl.text,
                                         password: passctrl.text));
+                                Data.setUP(nickctrl.text, passctrl.text);
                                 Navigator.of(context).pop();
                               } catch (err) {
                                 SmartDialog.showToast(err.toString());
@@ -197,13 +212,7 @@ class _LoginPageState extends State<LoginPage> {
               child: const Text('登录'),
               onPressed: () {
                 Client.instance.login(_usernameController.text.trim(),
-                    _passwordController.text.trim());
-                Client.instance.addHandler("login", (err, data) {
-                  Data.data.fromJson(data);
-                  Data.setUP(
-                      _usernameController.text, _passwordController.text);
-                  Navigator.of(context).pushNamed("/chat");
-                }, true);
+                    _passwordController.text.trim(), ClientHandler());
               },
             );
           },

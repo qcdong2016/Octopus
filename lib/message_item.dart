@@ -3,6 +3,7 @@ import 'package:desktop_context_menu/desktop_context_menu.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/message_item_file.dart';
+import 'package:octopus/native.dart';
 import 'package:octopus/wx_expression.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -78,19 +79,19 @@ class _MessageItemState extends State<MessageItem> {
                 ContextMenuItem(
                   title: '保存并查看',
                   onTap: () {
-                    Client.downloadAndOpen(widget.msg);
+                    NativeUtil.downloadAndOpen(widget.msg);
                   },
                 ),
                 ContextMenuItem(
                   title: '另存为',
                   onTap: () {
-                    Client.saveFileAs(widget.msg);
+                    NativeUtil.saveFileAs(widget.msg);
                   },
                 ),
               ]);
               menu?.onTap?.call();
             } else {
-              Client.downloadAndOpen(widget.msg);
+              NativeUtil.downloadAndOpen(widget.msg);
               // launchUrl(Uri.parse(url));
             }
 

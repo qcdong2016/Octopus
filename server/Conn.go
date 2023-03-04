@@ -1,13 +1,15 @@
 package main
 
 import (
-	"encoding/json"
+	"Octopus/pb"
+	"errors"
 	"net"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/qcdong2016/logs"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -37,15 +39,15 @@ type WsConn struct {
 	UserID int64
 }
 
-func (this *WsConn) IsClosed() bool {
-	return atomic.LoadInt32(&this.closeFlag) == 1
+func (ws *WsConn) IsClosed() bool {
+	return atomic.LoadInt32(&ws.closeFlag) == 1
 }
 
-func (this *WsConn) SetAuthed() {
-	atomic.StoreInt32(&this.authFlag, 1)
+func (ws *WsConn) SetAuthed() {
+	atomic.StoreInt32(&ws.authFlag, 1)
 }
-func (this *WsConn) IsAuthed() bool {
-	return atomic.LoadInt32(&this.authFlag) == 1
+func (ws *WsConn) IsAuthed() bool {
+	return atomic.LoadInt32(&ws.authFlag) == 1
 }
 
 func NewWsConn(ws *websocket.Conn, msgHandler MsgHandler) *WsConn {
@@ -74,144 +76,149 @@ func NewWsConn(ws *websocket.Conn, msgHandler MsgHandler) *WsConn {
 	return wc
 }
 
-func (this *WsConn) Send(route, d interface{}, addbytes []byte) error {
+func makeMsg(method any, imsg any) ([]byte, error) {
+	data := &pb.S2CData{}
 
-	ret := map[string]interface{}{}
-
-	if cbid, ok := route.(int); ok {
-		ret["cbid"] = cbid
-	} else {
-		ret["route"] = route
+	switch id := method.(type) {
+	case string:
+		data.Method = method.(string)
+	case int64:
+		data.Callback = id
+	default:
+		return nil, errors.New("not support")
 	}
 
-	if err, ok := d.(error); ok {
-		ret["err"] = err.Error()
+	switch msg := imsg.(type) {
+	case proto.Message:
+		buf, err := proto.Marshal(msg)
+		if err != nil {
+			return nil, err
+		}
+		data.Body = buf
+
+	case error:
+		data.Error = msg.Error()
 	}
 
-	bytesData, err := json.Marshal(d)
+	return proto.Marshal(data)
+}
+
+func (ws *WsConn) SendNow(method any, imsg any) error {
+	buf, err := makeMsg(method, imsg)
 	if err != nil {
 		return err
 	}
 
-	ret["size"] = len(bytesData)
+	ws.ws.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 
-	bytes, err := json.Marshal(ret)
+	return ws.ws.WriteMessage(websocket.BinaryMessage, buf)
+}
+
+func (ws *WsConn) Send(method any, imsg any) error {
+
+	buf, err := makeMsg(method, imsg)
 	if err != nil {
 		return err
 	}
 
-	bytes = append(bytes, bytesData...)
-
-	// logger.Info("send", "msg", string(bytes))
-	if addbytes != nil {
-		bytes = append(bytes, addbytes...)
-		this.send(bytes, websocket.BinaryMessage)
-	} else {
-		this.send(bytes, websocket.TextMessage)
+	ws.sendChan <- &Msg{
+		Bytes: buf,
+		Type:  websocket.BinaryMessage,
 	}
 
 	return nil
 }
 
-func (this *WsConn) send(msg []byte, msgtype int) *Msg {
-	r := &Msg{
-		Bytes: msg,
-		Type:  msgtype,
-	}
-	this.sendChan <- r
-	return r
-}
-
-func (this *WsConn) Write(bytes []byte) (int, error) {
-	if err := this.ws.WriteMessage(websocket.TextMessage, bytes); err != nil {
+func (ws *WsConn) Write(bytes []byte) (int, error) {
+	if err := ws.ws.WriteMessage(websocket.TextMessage, bytes); err != nil {
 		return 0, err
 	}
 	return len(bytes), nil
 }
 
-func (this *WsConn) Close() {
-	if !this.IsClosed() {
-		this.ws.Close()
-		this.endWritePump <- struct{}{}
-		<-this.pumpFinished
+func (ws *WsConn) Close() {
+	if !ws.IsClosed() {
+		ws.ws.Close()
+		ws.endWritePump <- struct{}{}
+		<-ws.pumpFinished
 	}
 }
 
-func (this *WsConn) readPump() {
+func (ws *WsConn) readPump() {
 
 	defer func() {
-		this.endWritePump <- struct{}{}
-		this.ws.Close()
+		ws.endWritePump <- struct{}{}
+		ws.ws.Close()
 	}()
 
 	for {
-		// _, reader, err := this.ws.NextReader()
-		this.ws.SetReadDeadline(time.Now().Add(READ_WAIT))
-		_, buf, err := this.ws.ReadMessage()
+		// _, reader, err := ws.ws.NextReader()
+		ws.ws.SetReadDeadline(time.Now().Add(READ_WAIT))
+		_, buf, err := ws.ws.ReadMessage()
 
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-				logs.Debug("ws.read", "error", "client side closed socket.", "ip", this.IP)
+				logs.Debug("ws.read", "error", "client side closed socket.", "ip", ws.IP)
 			} else if e, ok := err.(net.Error); ok && !e.Temporary() {
-				logs.Debug("ws.read", "error", err.Error(), "ip", this.IP)
+				logs.Debug("ws.read", "error", err.Error(), "ip", ws.IP)
 			}
 
 			return
 		} else {
-			if err := this.handler.OnRecv(this, buf); err != nil {
-				logs.Error("ws.recv", "error", err.Error(), "ip", this.IP)
+			if err := ws.handler.OnRecv(ws, buf); err != nil {
+				logs.Error("ws.recv", "error", err.Error(), "ip", ws.IP)
 				return
 			}
 		}
 	}
 }
 
-func (this *WsConn) writePump() {
+func (ws *WsConn) writePump() {
 	authTicker := time.NewTicker(AUTH_TIMEOUT)
 
 	defer func() {
-		this.ws.Close()
+		ws.ws.Close()
 		authTicker.Stop()
 	}()
 
 	for {
 		select {
-		case <-this.endWritePump:
+		case <-ws.endWritePump:
 			return
 
 		case <-authTicker.C:
-			if this.authFlag != 1 {
-				logs.Debug("ws.authTicker", "ip", this.IP)
+			if ws.authFlag != 1 {
+				logs.Debug("ws.authTicker", "ip", ws.IP)
 				return
 			}
 			authTicker.Stop()
 
-		case msg := <-this.sendChan:
+		case msg := <-ws.sendChan:
 
-			this.ws.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+			ws.ws.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 
-			msg.Error = this.ws.WriteMessage(msg.Type, msg.Bytes)
+			msg.Error = ws.ws.WriteMessage(msg.Type, msg.Bytes)
 
 			if msg.Error != nil {
 				if websocket.IsCloseError(msg.Error, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					logs.Debug("ws.send", "error", "client side closed socket", "ip", this.IP)
+					logs.Debug("ws.send", "error", "client side closed socket", "ip", ws.IP)
 				} else {
-					logs.Debug("ws.send", "error", msg.Error.Error(), "ip", this.IP)
+					logs.Debug("ws.send", "error", msg.Error.Error(), "ip", ws.IP)
 				}
 			}
 		}
 	}
 }
 
-func (this *WsConn) Pump() {
+func (ws *WsConn) Pump() {
 	ch := make(chan struct{}, 1)
 	go func() {
-		this.writePump()
+		ws.writePump()
 		ch <- struct{}{}
 	}()
-	this.readPump()
+	ws.readPump()
 	<-ch
-	this.pumpFinished <- struct{}{}
-	atomic.StoreInt32(&this.closeFlag, 1)
-	// this.handler.OnClose(this)
+	ws.pumpFinished <- struct{}{}
+	atomic.StoreInt32(&ws.closeFlag, 1)
+	// ws.handler.OnClose(ws)
 }
