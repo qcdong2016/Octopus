@@ -12,11 +12,22 @@ import (
 	"reflect"
 	"runtime/debug"
 	"strings"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/qcdong2016/logs"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
+
+func RandomString(len int) string {
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		b := rand.Intn(26) + 'a'
+		bytes[i] = byte(b)
+	}
+	return string(bytes)
+}
 
 func RandomNum(minNum int64, maxNum int64) int64 {
 	if minNum == maxNum {
@@ -140,4 +151,43 @@ func GrpcHttpHandleFunc(grpcServer any) echo.HandlerFunc {
 		return nil
 	}
 
+}
+
+type ServiceReg struct {
+	lock sync.Mutex
+	mp   map[string]*DescAndImpl
+}
+
+func NewServiceReg() *ServiceReg {
+	return &ServiceReg{mp: map[string]*DescAndImpl{}}
+}
+
+func (s *ServiceReg) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
+	s.mp[desc.ServiceName] = &DescAndImpl{Desc: desc, Impl: impl}
+}
+
+func (s *ServiceReg) GetDesc(path string) (*DescAndImpl, *grpc.MethodDesc) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	pos := strings.LastIndex(path, "/")
+	if pos == -1 {
+		return nil, nil
+	}
+
+	service := path[:pos]
+	method := path[pos+1:]
+
+	sdesc, ok := s.mp[service]
+	if !ok {
+		return nil, nil
+	}
+
+	for _, v := range sdesc.Desc.Methods {
+		if v.MethodName == method {
+			return sdesc, &v
+		}
+	}
+
+	return nil, nil
 }

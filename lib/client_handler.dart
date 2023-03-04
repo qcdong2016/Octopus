@@ -17,6 +17,12 @@ class ClientHandler extends S2CServiceBase {
     }
     return Future(() => Empty());
   }
+
+  @override
+  Future<Empty> onMsg(ServerContext ctx, Msg request) {
+    Data.data.addMessage(request);
+    return Future(() => Empty());
+  }
 }
 
 

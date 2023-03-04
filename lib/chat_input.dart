@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
+import 'package:octopus/pb/msg.pb.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
+import 'package:fixnum/fixnum.dart' as fixnum;
 
 class ChatInput extends StatefulWidget {
   TextEditingController controller = TextEditingController();
@@ -38,19 +40,17 @@ class _ChatInputState extends State<ChatInput> {
             !event.isShiftPressed) {
           var text = widget.controller.text.trim();
           if (text != "") {
-            var msg = utf8.encode(text);
-            var msg1 = base64Encode(msg);
-            Client.send(
-              "chat.text",
-              {
-                "To": Data.data.chatTarget.iD,
-                "Content": msg1,
-              },
-              cb: (err, data) {
-                widget.controller.text = "";
-                Data.data.addMessage(Message().fromJson(data));
-              },
-            );
+            // var msg = utf8.encode(text);
+            // var msg1 = base64Encode(msg);
+
+            var resp = await ChatApi(Client.instance).send(
+                null,
+                Msg(
+                  to: fixnum.Int64(Data.data.chatTarget.iD),
+                  text: TextMsg(text: text),
+                ));
+            widget.controller.text = "";
+            Data.data.addMessage(resp);
           }
         }
 
@@ -70,9 +70,9 @@ class _ChatInputState extends State<ChatInput> {
                 ext == ".png" ||
                 ext == ".gif" ||
                 ext == ".webp") {
-              Client.sendFile("image", file.path);
+              Client.sendFile(file.path, true);
             } else {
-              Client.sendFile("file", file.path);
+              Client.sendFile(file.path, false);
             }
           });
         },

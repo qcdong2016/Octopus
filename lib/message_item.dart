@@ -2,6 +2,7 @@ import 'package:bubble/bubble.dart';
 import 'package:desktop_context_menu/desktop_context_menu.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/message_item_file.dart';
 import 'package:octopus/native.dart';
 import 'package:octopus/wx_expression.dart';
@@ -61,6 +62,10 @@ class _MessageItemState extends State<MessageItem> {
   }
 
   Widget _createImage() {
+    if (!widget.msg.sended) {
+      return SizedBox(width: 100, height: 100, child: Text("发送中"));
+    }
+
     bool shouldReact = false;
     var url = "http://${Data.server}/downFile?file=${widget.msg.url}";
     return Container(
@@ -143,8 +148,7 @@ class _MessageItemState extends State<MessageItem> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _createWidget() {
     late Widget child;
     if (widget.msg.type == "file") {
       child = _createFile();
@@ -153,11 +157,19 @@ class _MessageItemState extends State<MessageItem> {
     } else {
       child = ExpressionText(widget.msg.content, textStyle);
     }
-
     if (widget.msg.from == Data.data.me.iD ||
         widget.msg.sender == Data.data.me.iD)
       return _createRight(child: child);
     else
       return _createLeft(child: child);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return EventWidget(
+        buidler: (ctx) {
+          return _createWidget();
+        },
+        event: widget.msg);
   }
 }

@@ -16,6 +16,8 @@ import 'package:protobuf/protobuf.dart';
 import 'dart:convert';
 import 'data.dart';
 
+import 'package:fixnum/fixnum.dart' as fixnum;
+
 typedef CB = Function(String, dynamic);
 
 class RequestHold {
@@ -98,9 +100,8 @@ class Client extends RpcClient {
 
   doSend(String route, data) {}
 
-  static _doSendFile(String type, String filename, Message msg) async {
-    var url =
-        "http://${Data.server}/upFile?from=${msg.from}&to=${msg.to}&type=$type";
+  static _doSendFile(Message msg, String filename) async {
+    var url = "http://${Data.server}/upFile?id=${msg.id}";
 
     var pf = await MultipartFile.fromFile(filename,
         filename: path.basename(filename));
@@ -112,36 +113,27 @@ class Client extends RpcClient {
         await Dio().post(url, data: formData, onSendProgress: (count, total) {
       msg.progress = count / total;
     });
-
-    msg.url = response.data["URL"];
   }
 
-  static sendFile(String type, String filename) async {
-    // if (!File.fromRawPath(Uint8List.fromList(filename.codeUnits))
-    //     .existsSync()) {
-    //   return null;
-    // }
+  static _sendFile(Msg one, String filename) async {
+    var resp = await ChatApi(Client.instance).send(null, one);
+    var msg = Data.data.addMessage(resp);
+    await _doSendFile(msg, filename);
+    msg.sended = true;
+    Data.data.animateScroller(Data.data.pageScrollerController);
+  }
 
-    var from = Data.data.me.iD;
-    var to = Data.data.chatTarget.iD;
-
-    var msg = Message().fromJson({
-      "Type": type,
-      "From": from,
-      "To": to,
-      "FileName": path.basename(filename),
-      "URL": "",
-    });
-
-    if (type == "image") {
-      await _doSendFile(type, filename, msg);
+  static sendFile(String filename, bool isImage) {
+    var msg = Msg(
+      to: fixnum.Int64(Data.data.chatTarget.iD),
+    );
+    if (isImage) {
+      msg.image = ImageMsg(fileName: path.basename(filename));
     } else {
-      _doSendFile(type, filename, msg);
+      msg.file = FileMsg(fileName: path.basename(filename));
     }
 
-    Data.data.addMessage(msg);
-
-    return msg;
+    _sendFile(msg, filename);
   }
 
   dispatch(dynamic message) {

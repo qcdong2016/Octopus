@@ -2,17 +2,25 @@ package main
 
 import (
 	"Octopus/pb"
+	"context"
 	"net"
 	"net/http"
 	"sync"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/qcdong2016/logs"
+	"google.golang.org/grpc"
 )
 
 type MsgHandler interface {
 	OnRecv(conn *WsConn, msg []byte) error
+}
+
+type DescAndImpl struct {
+	Desc *grpc.ServiceDesc
+	Impl any
 }
 
 type Server struct {
@@ -23,6 +31,8 @@ type Server struct {
 	waitGroup  *sync.WaitGroup
 	mutex      sync.Mutex
 	conns      map[int64]*WsConn
+
+	reg *ServiceReg
 }
 
 func NewServer() *Server {
@@ -33,24 +43,45 @@ func NewServer() *Server {
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func(_ *http.Request) bool { return true },
 		},
+		reg: NewServiceReg(),
 	}
 
 	return svr
 }
 
-func (s *Server) OnRecv(conn *WsConn, buf []byte) error {
+var __key = struct{}{}
 
-	pkg, err := NewPackage(conn.UserID, buf)
+func GetConnFromCtx(ctx context.Context) *WsConn {
+	return ctx.Value(__key).(*WsConn)
+}
+
+func (s *Server) OnRecv(conn *WsConn, buf []byte) error {
+	pkg := pb.C2SData{}
+
+	err := proto.Unmarshal(buf, &pkg)
 	if err != nil {
 		return err
 	}
 
-	return dispatcher.Dispatch(conn, pkg)
+	service, method := s.reg.GetDesc(pkg.Method)
+
+	df := func(v interface{}) error {
+		return proto.Unmarshal(pkg.Body, v.(proto.Message))
+	}
+
+	ctx := context.WithValue(context.TODO(), __key, conn)
+
+	resp, err := method.Handler(service.Impl, ctx, df, nil)
+	if err != nil {
+		return err
+	}
+
+	return conn.Send(pkg.Callback, resp)
 }
 
-func (s *Server) onNewConnection(c echo.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Server) onNewConnection(c echo.Context) error {
 
-	conn, err := s.upgrader.Upgrade(w, r, nil)
+	conn, err := s.upgrader.Upgrade(c.Response().Writer, c.Request(), nil)
 
 	if err != nil {
 		return err

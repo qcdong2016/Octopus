@@ -60,37 +60,3 @@ func (u *Team) ToFriend() *pb.Friend {
 		Group:    true,
 	}
 }
-
-type ReqLogin struct {
-	ID       interface{}
-	Password string
-}
-
-type ReqChatTextP2P struct {
-	Type    string
-	Sender  int64 // 发送者
-	From    int64 // 群id/发送者id
-	To      int64
-	Content string
-}
-
-type ReqChatImageP2P struct {
-	Type     string
-	Sender   int64 // 发送者
-	From     int64
-	To       int64
-	FileName string
-}
-
-type RespChatTextP2P struct {
-	ReqChatTextP2P
-}
-
-type FileMsg struct {
-	Type     string
-	Sender   int64 // 发送者
-	From     int64
-	To       int64
-	URL      string
-	FileName string
-}

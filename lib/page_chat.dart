@@ -217,7 +217,7 @@ class _ChatPageState extends State<ChatPage> {
                     crossAxisCount: 4,
                   ))));
     });
-    Overlay.of(context1)?.insert(_overlay!);
+    Overlay.of(context1).insert(_overlay!);
   }
 
   showFace(context1, ChatInput input) {
@@ -356,7 +356,7 @@ class _ChatPageState extends State<ChatPage> {
                   if (capturedData == null) {
                     SmartDialog.showToast("错误");
                   } else {
-                    Client.sendFile("image", file.path);
+                    Client.sendFile(file.path, true);
                   }
                 },
               ),
@@ -374,7 +374,7 @@ class _ChatPageState extends State<ChatPage> {
                     allowedExtensions: ['jpg', 'png', 'gif'],
                   );
                   if (result != null && result.files.single.path != null) {
-                    Client.sendFile("image", result.files.single.path!);
+                    Client.sendFile(result.files.single.path!, true);
                   }
                 },
               ),
@@ -389,7 +389,7 @@ class _ChatPageState extends State<ChatPage> {
                   FilePickerResult? result =
                       await FilePicker.platform.pickFiles();
                   if (result != null && result.files.single.path != null) {
-                    Client.sendFile("file", result.files.single.path!);
+                    Client.sendFile(result.files.single.path!, false);
                   }
                 },
               ),

@@ -4,7 +4,6 @@ import (
 	"Octopus/pb"
 	"math/rand"
 	"net/http"
-	"path/filepath"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -44,26 +43,13 @@ func main() {
 
 	e.Debug = true
 
-	e.GET("/chat", handleChat)
+	e.GET("/chat", server.onNewConnection)
 	e.POST("/upFile", handleUpFile, CrossOrigin)
 	e.GET("/downFile", handleDownFile)
 
 	e.POST("/api/Public/*", wrap[pb.PublicServer](&PublicServer{}))
 
-	dispatcher.Add("login", onLogin)
-	dispatcher.Add("ping", onPing)
-	dispatcher.Add("chat.text", onChatText)
-	dispatcher.Add("chat.image", onChatImage)
+	pb.RegisterChatServer(server.reg, &ChatServer{})
 
 	e.Start(":7457")
-}
-
-func handleChat(c echo.Context) error {
-
-	return server.onNewConnection(c, c.Response(), c.Request())
-}
-
-func handleDownFile(c echo.Context) error {
-	file := c.QueryParam("file")
-	return c.File(filepath.Join(".", file))
 }

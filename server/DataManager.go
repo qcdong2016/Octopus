@@ -103,7 +103,7 @@ func (d *DataManager) NewTeam(owner int64, nickname, avatar string) (*Team, erro
 
 	d.teams[u.Id] = u.ToFriend()
 
-	d.SendTo(0, u.Id, "friendOnline", u.ToFriend())
+	// d.SendTo(0, u.Id, "friendOnline", u.ToFriend())
 
 	return u, nil
 }
@@ -256,10 +256,11 @@ func (d *DataManager) AddFile(filepath string) {
 	})
 }
 
-func (d *DataManager) SendTo(sender, to int64, route, msg interface{}) {
+func (d *DataManager) SendTo(sender, to int64, route string, msg *pb.Msg) {
 	if to >= team_id_range[0] {
 		d.SendToTeam(sender, to, route, msg)
 	} else {
+		msg.From = sender
 		user := server.Get(to)
 		if user != nil {
 			user.Send(route, msg)
@@ -267,7 +268,8 @@ func (d *DataManager) SendTo(sender, to int64, route, msg interface{}) {
 	}
 }
 
-func (d *DataManager) SendToTeam(sender, to int64, route, msg interface{}) {
+func (d *DataManager) SendToTeam(sender, to int64, route string, msg *pb.Msg) {
+	msg.From = to
 
 	mems, _ := d.getTeamMem(to)
 

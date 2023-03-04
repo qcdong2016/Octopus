@@ -16,6 +16,38 @@ message OnLogin {
     string          Msg     = 3;
 }
 
+message TextMsg {
+    string Text = 1;
+}
+
+message ImageMsg {
+    string FileName = 1;
+}
+
+message FileMsg {
+    string FileName = 1;
+}
+
+message Msg {
+    int64 Sender = 1; // 发送者id
+    int64 From   = 2; // 群组id/发送者id
+    int64 To     = 3; // 接受者
+    oneof Data {
+        TextMsg  Text  = 4;
+        FileMsg  File  = 5;
+        ImageMsg Image = 6;
+    };
+    string ID = 7;
+}
+
+// server call client
 service S2C {
     rpc Login(OnLogin) returns (Empty);
+    rpc OnMsg(Msg) returns (Empty);
+}
+
+// client call server
+service Chat {
+    rpc Ping(Empty) returns (Empty);
+    rpc Send(Msg) returns (Msg);
 }
