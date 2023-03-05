@@ -28,15 +28,22 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
+EventBlock? _block;
+
 class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+
+    _block = Data.onLogout.connect(() {
+      Navigator.of(context).pop();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
+    Data.onLogout.disconnect(_block);
   }
 
   void showConfig() {

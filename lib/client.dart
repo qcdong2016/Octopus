@@ -33,36 +33,26 @@ class Client extends RpcClient {
 
   Timer? _timer;
 
-  int retryCount = 0;
-  bool _isLogin = false;
-
   late S2CServiceBase _handler;
 
   void login(String nickname, String password, S2CServiceBase handler) async {
-    this._handler = handler;
+    _handler = handler;
     Data.setUP(nickname, password);
-    _connect();
+    _connect("正在登录", false, nickname, password);
   }
 
   void autoConnect() {
     _timer?.cancel();
+    _timer = null;
 
-    _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_webSocket == null && !_isLogin) {
-        return;
-      }
-
+    _timer ??= Timer.periodic(const Duration(seconds: 2), (timer) {
       if (_webSocket == null ||
           _webSocket?.readyState == WebSocket.closed ||
           _webSocket?.closeCode != null) {
-        if (retryCount == 0) {
-          SmartDialog.showLoading(
-              msg: "已掉线，重连中。。", maskColor: Colors.black.withOpacity(0.5));
-        }
-        retryCount++;
-        _connect();
+        _connect("已掉线，重连中。。", true, Data.loginData.nickname,
+            Data.loginData.password);
       } else if (_webSocket!.readyState == WebSocket.open) {
-        doSend("ping", {});
+        ping();
       }
     });
   }
@@ -70,35 +60,41 @@ class Client extends RpcClient {
   void disconnect() {
     _webSocket?.close();
     _webSocket = null;
+    _timer?.cancel();
+    _timer = null;
   }
 
-  Future<void> _connect() async {
+  Future<void> _connect(
+      String msg, bool reconnect, String nickname, String password) async {
+    SmartDialog.showLoading(msg: msg, maskColor: Colors.black.withOpacity(0.5));
+
     _webSocket?.close();
 
     try {
       _webSocket = await WebSocket.connect(
-          "ws://${Data.server}/chat?u=${Data.loginData.nickname}&p=${Data.loginData.password}");
+          "ws://${Data.server}/chat?u=${nickname}&p=${password}&r=${reconnect}");
       _webSocket?.listen(
         dispatch,
         onDone: () => _webSocket = null,
       );
 
-      _isLogin = true;
-
-      if (retryCount != 0) {
+      SmartDialog.dismiss();
+    } catch (e) {
+      if (!reconnect) {
         SmartDialog.dismiss();
       }
-      retryCount = 0;
-    } catch (e) {
-      print(e);
+
+      if (reconnect) {
+        print(e.toString());
+        return;
+      }
+      if (e is SocketException) {
+        SmartDialog.showToast(e.message);
+      } else {
+        SmartDialog.showToast(e.toString());
+      }
     }
   }
-
-  static send(String route, data, {CB? cb}) {
-    // instance.doSend(route, data, cb: cb);
-  }
-
-  doSend(String route, data) {}
 
   static _doSendFile(Message msg, String filename) async {
     var url = "http://${Data.server}/upFile?id=${msg.id}";
@@ -169,6 +165,10 @@ class Client extends RpcClient {
 
   RequestHold? takeCB(int id) {
     return _cbMap.remove(id);
+  }
+
+  ping() async {
+    await ChatApi(this).ping(null, Empty());
   }
 
   @override

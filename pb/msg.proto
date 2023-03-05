@@ -14,6 +14,22 @@ message OnLogin {
     Friend          Me      = 1;
     repeated Friend Friends = 2;
     string          Msg     = 3;
+    bool Reconnect = 4;
+}
+
+message KickReq {
+    string Msg = 1;
+}
+
+message OnlineReq {
+    Friend Who = 1;
+}
+message OfflineReq {
+    int64 ID = 1;
+}
+message OnUploadReq {
+    string ID = 1;
+    int64  From = 2; // 群组id/发送者id
 }
 
 message TextMsg {
@@ -43,7 +59,11 @@ message Msg {
 // server call client
 service S2C {
     rpc Login(OnLogin) returns (Empty);
+    rpc Kick(KickReq) returns (Empty);
     rpc OnMsg(Msg) returns (Empty);
+    rpc Online(OnlineReq) returns (Empty);
+    rpc Offline(OfflineReq) returns (Empty);
+    rpc OnUpload(OnUploadReq) returns (Empty);
 }
 
 // client call server

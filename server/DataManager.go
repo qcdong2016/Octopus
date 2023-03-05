@@ -256,11 +256,14 @@ func (d *DataManager) AddFile(filepath string) {
 	})
 }
 
-func (d *DataManager) SendTo(sender, to int64, route string, msg *pb.Msg) {
+func IsTeam(id int64) bool {
+	return id >= team_id_range[0]
+}
+
+func (d *DataManager) SendTo(sender, to int64, route string, msg any) {
 	if to >= team_id_range[0] {
 		d.SendToTeam(sender, to, route, msg)
 	} else {
-		msg.From = sender
 		user := server.Get(to)
 		if user != nil {
 			user.Send(route, msg)
@@ -268,8 +271,7 @@ func (d *DataManager) SendTo(sender, to int64, route string, msg *pb.Msg) {
 	}
 }
 
-func (d *DataManager) SendToTeam(sender, to int64, route string, msg *pb.Msg) {
-	msg.From = to
+func (d *DataManager) SendToTeam(sender, to int64, route string, msg any) {
 
 	mems, _ := d.getTeamMem(to)
 

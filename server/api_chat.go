@@ -8,24 +8,64 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-type ChatServer struct{}
+type ChatServer struct {
+}
 
-func (ChatServer) Ping(context.Context, *pb.Empty) (*pb.Empty, error) {
+type msgHold struct {
+	lock sync.Mutex
+	mp   map[string]*pb.Msg
+}
+
+var hold = &msgHold{mp: make(map[string]*pb.Msg)}
+
+func (s *msgHold) hold(msg *pb.Msg) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.mp[msg.ID] = msg
+
+}
+
+func (s *msgHold) done(id string) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	msg, ok := s.mp[id]
+	if !ok {
+		return
+	}
+
+	delete(s.mp, id)
+
+	dataMgr.SendTo(msg.Sender, msg.To, "OnUpload",
+		&pb.OnUploadReq{ID: msg.ID, From: msg.From})
+}
+
+func (s *ChatServer) Ping(context.Context, *pb.Empty) (*pb.Empty, error) {
 	return &pb.Empty{}, nil
 }
 
-func (ChatServer) Send(ctx context.Context, req *pb.Msg) (*pb.Msg, error) {
+func (s *ChatServer) Send(ctx context.Context, req *pb.Msg) (*pb.Msg, error) {
 	conn := GetConnFromCtx(ctx)
 
 	req.Sender = conn.UserID
 	req.ID = uuid.NewString()
+	req.From = req.Sender
+	if IsTeam(req.To) {
+		req.From = req.To
+	}
 
 	dataMgr.SendTo(conn.UserID, req.To, "OnMsg", req)
+
+	if req.GetFile() != nil || req.GetImage() != nil {
+		hold.hold(req)
+	}
 
 	return req, nil
 }
@@ -56,6 +96,8 @@ func handleUpFile(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	hold.done(id)
 
 	return c.JSON(http.StatusOK, map[string]any{})
 }

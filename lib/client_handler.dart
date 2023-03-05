@@ -11,9 +11,11 @@ class ClientHandler extends S2CServiceBase {
     if (request.hasMsg()) {
       SmartDialog.showToast(request.msg);
     } else {
-      Client.instance.autoConnect();
       Data.data.init(request);
-      Data.onLogin.emit();
+      if (!request.reconnect) {
+        Client.instance.autoConnect();
+        Data.onLogin.emit();
+      }
     }
     return Future(() => Empty());
   }
@@ -23,23 +25,30 @@ class ClientHandler extends S2CServiceBase {
     Data.data.addMessage(request);
     return Future(() => Empty());
   }
+
+  @override
+  Future<Empty> kick(ServerContext ctx, KickReq request) {
+    SmartDialog.showToast(request.msg);
+    Client.instance.disconnect();
+    Data.onLogout.emit();
+    return Future(() => Empty());
+  }
+
+  @override
+  Future<Empty> offline(ServerContext ctx, OfflineReq request) {
+    Data.data.setUserOffline(request.iD.toInt());
+    return Future(() => Empty());
+  }
+
+  @override
+  Future<Empty> online(ServerContext ctx, OnlineReq request) {
+    Data.data.setUserOnline(request.who);
+    return Future(() => Empty());
+  }
+
+  @override
+  Future<Empty> onUpload(ServerContext ctx, OnUploadReq request) {
+    Data.data.setMsgSended(request);
+    return Future(() => Empty());
+  }
 }
-
-
-    // Client.instance.addHandler("chat.text", (err, data) {
-    //   Message msg = Message().fromJson(data);
-    //   Data.data.addMessage(msg);
-    // }, false);
-
-    // Client.instance.addHandler("chat.file", (err, data) {
-    //   Message msg = Message().fromJson(data);
-    //   Data.data.addMessage(msg);
-    // }, false);
-
-    // Client.instance.addHandler("friendOnline", (err, data) {
-    //   Data.data.setUserOnline(User().fromJson(data));
-    // }, false);
-
-    // Client.instance.addHandler("friendOffline", (err, data) {
-    //   Data.data.setUserOffline(data);
-    // }, false);

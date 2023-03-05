@@ -87,36 +87,54 @@ func (s *Server) onNewConnection(c echo.Context) error {
 		return err
 	}
 
-	u := c.QueryParam("u")
-	p := c.QueryParam("p")
+	var arg struct {
+		Username    string `query:"u"`
+		Password    string `query:"p"`
+		IsReconnect bool   `query:"r"`
+	}
+	if err := c.Bind(&arg); err != nil {
+		return err
+	}
 
 	connection := NewWsConn(conn, s)
 	defer connection.Close()
 
-	logs.Info("ws.from", "IP", conn.RemoteAddr().String())
-	if user, err := dataMgr.Login(u, p); err == nil {
+	logs.Info("ws.from", c.QueryString())
+	if user, err := dataMgr.Login(arg.Username, arg.Password); err == nil {
 
 		connection.SetAuthed()
 		connection.UserID = user.ID
 
 		connection.Send("Login", &pb.OnLogin{
-			Me:      user,
-			Friends: dataMgr.GetFriends(user.ID),
+			Me:        user,
+			Friends:   dataMgr.GetFriends(user.ID),
+			Reconnect: arg.IsReconnect,
 		})
 
-		s.Del(connection.UserID)
-		dataMgr.Logout(connection.UserID)
-		s.BroadcastExcept("friendOffline", connection.UserID, connection.UserID)
+		old := s.Del(connection.UserID, nil)
 
-		s.waitGroup.Add(1)
+		if old != nil {
+			old.SendNow("Kick", &pb.KickReq{
+				Msg: "重复登录",
+			})
+		}
+
+		user.Online = true
+
+		s.BroadcastExcept("Online", &pb.OnlineReq{Who: user}, connection.UserID)
+
+		s.Add(connection.UserID, connection)
 		connection.Pump()
+		s.Del(connection.UserID, connection)
 
-		logs.Info("ws.close", "IP", connection.IP)
-		s.waitGroup.Done()
+		s.BroadcastExcept("Offline", &pb.OfflineReq{ID: user.ID}, user.ID)
+
+		logs.Info("ws.close", user.ID)
 
 	} else {
 		connection.SendNow("Login", &pb.OnLogin{
-			Msg: err.Error(),
+			Msg:       err.Error(),
+			Reconnect: arg.IsReconnect,
 		})
 	}
 
@@ -129,10 +147,22 @@ func (s *Server) Add(userid int64, conn *WsConn) {
 	s.mutex.Unlock()
 }
 
-func (s *Server) Del(userid int64) {
+func (s *Server) Del(userid int64, conn *WsConn) *WsConn {
 	s.mutex.Lock()
-	delete(s.conns, userid)
-	s.mutex.Unlock()
+	defer s.mutex.Unlock()
+
+	one, ok := s.conns[userid]
+	if ok {
+		if conn != nil {
+			if one != conn {
+				return nil
+			}
+		}
+		delete(s.conns, userid)
+		return one
+	}
+
+	return nil
 }
 
 func (s *Server) Stop() {
