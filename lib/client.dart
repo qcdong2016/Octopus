@@ -2,18 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/pb/comm.pb.dart';
 import 'package:octopus/pb/msg.pb.dart';
 import 'package:octopus/pb/msg.pbserver.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:protobuf/protobuf.dart';
-import 'dart:convert';
 import 'data.dart';
 
 import 'package:fixnum/fixnum.dart' as fixnum;
@@ -72,7 +68,7 @@ class Client extends RpcClient {
 
     try {
       _webSocket = await WebSocket.connect(
-          "ws://${Data.server}/chat?u=${nickname}&p=${password}&r=${reconnect}");
+          "ws://${Data.server}/chat?u=$nickname&p=$password&r=$reconnect");
       _webSocket?.listen(
         dispatch,
         onDone: () => _webSocket = null,
@@ -103,11 +99,6 @@ class Client extends RpcClient {
         filename: path.basename(filename));
     var formData = FormData.fromMap({
       'file': pf,
-    });
-
-    var response =
-        await Dio().post(url, data: formData, onSendProgress: (count, total) {
-      msg.progress = count / total;
     });
   }
 

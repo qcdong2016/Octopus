@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:octopus/data.dart';
-import 'package:octopus/event/event_widget.dart';
 import 'package:badges/badges.dart' as badges;
 import 'avatar.dart';
 

@@ -6,10 +6,8 @@ import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/message_item_file.dart';
 import 'package:octopus/native.dart';
 import 'package:octopus/wx_expression.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'avatar.dart';
-import 'client.dart';
 import 'data.dart';
 
 class MessageItem extends StatefulWidget {
@@ -25,26 +23,6 @@ class MessageItem extends StatefulWidget {
 }
 
 class _MessageItemState extends State<MessageItem> {
-  static const styleSomebody = BubbleStyle(
-    nip: BubbleNip.leftCenter,
-    color: Colors.white,
-    borderColor: Colors.blue,
-    borderWidth: 1,
-    elevation: 4,
-    margin: BubbleEdges.only(top: 8, right: 50),
-    alignment: Alignment.topLeft,
-  );
-
-  static const styleMe = BubbleStyle(
-    nip: BubbleNip.rightCenter,
-    color: Color.fromARGB(255, 225, 255, 199),
-    borderColor: Colors.blue,
-    borderWidth: 1,
-    elevation: 4,
-    margin: BubbleEdges.only(top: 8, left: 50),
-    alignment: Alignment.topRight,
-  );
-
   static const textStyle = TextStyle(
     color: Colors.black,
     fontSize: 16,
@@ -63,13 +41,13 @@ class _MessageItemState extends State<MessageItem> {
 
   Widget _createImage() {
     if (!widget.msg.sended) {
-      return SizedBox(width: 100, height: 100, child: Text("发送中"));
+      return const SizedBox(width: 100, height: 100, child: Text("发送中"));
     }
 
     bool shouldReact = false;
     var url = "http://${Data.server}/downFile?file=${widget.msg.url}";
     return Container(
-      constraints: BoxConstraints(maxHeight: 500, maxWidth: 500),
+      constraints: const BoxConstraints(maxHeight: 500, maxWidth: 500),
       child: Listener(
           child: Image(
             image: NetworkImage(url),
@@ -107,7 +85,7 @@ class _MessageItemState extends State<MessageItem> {
 
   Widget _createLeft({required Widget child}) {
     var bb = Bubble(
-      margin: BubbleEdges.only(top: 10),
+      margin: const BubbleEdges.only(top: 10),
       alignment: Alignment.topLeft,
       nip: BubbleNip.leftTop,
       color: otherBubbleColor,
@@ -158,10 +136,11 @@ class _MessageItemState extends State<MessageItem> {
       child = ExpressionText(widget.msg.content, textStyle);
     }
     if (widget.msg.from == Data.data.me.iD ||
-        widget.msg.sender == Data.data.me.iD)
+        widget.msg.sender == Data.data.me.iD) {
       return _createRight(child: child);
-    else
+    } else {
       return _createLeft(child: child);
+    }
   }
 
   @override

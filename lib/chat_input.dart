@@ -1,14 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/pb/msg.pb.dart';
-import 'package:pasteboard/pasteboard.dart';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:fixnum/fixnum.dart' as fixnum;
 
@@ -94,9 +89,10 @@ class _ChatInputState extends State<ChatInput> {
           decoration: InputDecoration(
             filled: true,
             hoverColor: Colors.transparent,
-            contentPadding: EdgeInsets.all(3),
-            fillColor:
-                _dragging ? Color.fromARGB(255, 184, 238, 255) : Colors.white,
+            contentPadding: const EdgeInsets.all(3),
+            fillColor: _dragging
+                ? const Color.fromARGB(255, 184, 238, 255)
+                : Colors.white,
           ),
         ),
       ),

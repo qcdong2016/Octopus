@@ -3,15 +3,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:octopus/pb/msg.pb.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:protobuf/protobuf.dart';
-import 'dart:convert';
 import 'data.dart';
 
 typedef CB = Function(Uint8List);

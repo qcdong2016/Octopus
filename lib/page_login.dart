@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/client_handler.dart';
@@ -7,7 +6,6 @@ import 'package:octopus/data.dart';
 import 'package:octopus/event/event.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/pb/http.pb.dart';
-import 'package:octopus/pb/msg.pb.dart';
 
 import 'client.dart';
 import 'line_input.dart';
@@ -84,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
         bottomNavigationBar: Row(
           children: [
             TextButton(
-              child: Text('设置'),
+              child: const Text('设置'),
               onPressed: () {
                 showDialog(
                     context: context,
@@ -99,13 +97,13 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         actions: <Widget>[
                           TextButton(
-                            child: Text('取消'),
+                            child: const Text('取消'),
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
                           ),
                           TextButton(
-                            child: Text('确定'),
+                            child: const Text('确定'),
                             onPressed: () {
                               Data.server = ctrl.text;
                               Navigator.of(context).pop();
@@ -121,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
               child: SizedBox.fromSize(),
             ),
             TextButton(
-              child: Text('注册'),
+              child: const Text('注册'),
               onPressed: () {
                 showDialog(
                     context: context,
@@ -147,13 +145,13 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         actions: <Widget>[
                           TextButton(
-                            child: Text('取消'),
+                            child: const Text('取消'),
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
                           ),
                           TextButton(
-                            child: Text('确定'),
+                            child: const Text('确定'),
                             onPressed: () async {
                               try {
                                 await PublicApi(ClientHttp()).regist(
@@ -196,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
         height: 50,
         width: double.infinity,
-        margin: EdgeInsets.all(10),
+        margin: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor,
           borderRadius: BorderRadius.circular(4.0),

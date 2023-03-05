@@ -1,16 +1,11 @@
-import 'dart:io';
-
 import 'package:desktop_context_menu/desktop_context_menu.dart';
 import 'package:file_icon/file_icon.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:octopus/client.dart';
 import 'package:octopus/data.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/native.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class FileMessageItem extends StatefulWidget {
   FileMessageItem({
@@ -67,7 +62,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
       width: 250,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(2)),
+        borderRadius: const BorderRadius.all(Radius.circular(2)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -80,21 +75,21 @@ class _FileMessageItemState extends State<FileMessageItem> {
       //
       child: Row(
         children: [
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Container(
             height: 40,
             width: 40,
-            color: Color.fromARGB(255, 251, 244, 176),
+            color: const Color.fromARGB(255, 251, 244, 176),
             child: FileIcon(
               widget.msg.filename,
               size: 30,
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Expanded(
             child: Text(widget.msg.filename),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           EventWidget(
             buidler: ((context) {
               if (widget.msg.downloading) {
@@ -115,7 +110,7 @@ class _FileMessageItemState extends State<FileMessageItem> {
             }),
             event: widget.msg,
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
         ],
       ),
     );

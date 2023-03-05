@@ -51,18 +51,16 @@ class _ChatPageState extends State<ChatPage> {
         context: context,
         builder: (BuildContext context) {
           var nickctrl = TextEditingController(text: Data.data.me.nickname);
-          Color pickerColor = Color(0xff443a49);
-          Color currentColor = Color(0xff443a49);
 
           return AlertDialog(
-            content: Container(
+            content: SizedBox(
               height: 300,
               child: Column(
                 children: [
-                  Center(
+                  const Center(
                     child: Text("我的资料"),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
                   Avatar(user: Data.data.me),
@@ -76,13 +74,13 @@ class _ChatPageState extends State<ChatPage> {
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('取消'),
+                child: const Text('取消'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
-                child: Text('确定'),
+                child: const Text('确定'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -93,9 +91,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   List<Expression> favList = [];
-  OverlayEntry? _overlay = null;
+  OverlayEntry? _overlay;
 
-  Timer? _timer = null;
+  Timer? _timer;
   bool _isOnButton = false;
   bool _isOnOverlay = false;
 
@@ -115,7 +113,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   loadFavList() async {
-    if (favList.length != 0) {
+    if (favList.isNotEmpty) {
       return;
     }
 
@@ -136,7 +134,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   addToFav(ChatInput input, e) async {
-    await this.loadFavList();
+    await loadFavList();
 
     favList.remove(e);
 
@@ -173,8 +171,8 @@ class _ChatPageState extends State<ChatPage> {
     if (_overlay != null) {
       return;
     }
-    await this.loadFavList();
-    if (this.favList.length == 0) {
+    await loadFavList();
+    if (favList.isEmpty) {
       return;
     }
 
@@ -186,12 +184,12 @@ class _ChatPageState extends State<ChatPage> {
 
     _isOnButton = true;
 
-    _timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
       // print(["check", _isOnButton, _isOnOverlay]);
 
       if (!_isOnButton && !_isOnOverlay) {
-        this.hideFavFace();
-        this.requireFocus(input);
+        hideFavFace();
+        requireFocus(input);
       }
     });
 
@@ -211,15 +209,15 @@ class _ChatPageState extends State<ChatPage> {
                   height: height,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                    borderRadius: const BorderRadius.all(Radius.circular(4.0)),
                     border: Border.all(
-                        width: 1, color: Color.fromARGB(155, 98, 98, 98)),
+                        width: 1, color: const Color.fromARGB(155, 98, 98, 98)),
                   ),
                   child: WeChatExpression(
                     (e) {
                       addToFav(input, e);
                     },
-                    padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
+                    padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
                     displayList: favList,
                     crossAxisCount: 4,
                   ))));
@@ -237,7 +235,7 @@ class _ChatPageState extends State<ChatPage> {
         (e) {
           addToFav(input, e);
         },
-        padding: EdgeInsets.fromLTRB(10, 4, 10, 4),
+        padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
         displayList: ExpressionData.expressionPath,
         crossAxisCount: 12,
       ),
@@ -269,12 +267,12 @@ class _ChatPageState extends State<ChatPage> {
       children: [
         Container(
           height: 30,
-          color: Color.fromARGB(255, 243, 243, 243),
+          color: const Color.fromARGB(255, 243, 243, 243),
           child: Container(
             alignment: Alignment.centerLeft,
             child: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 EventWidget(
@@ -291,7 +289,7 @@ class _ChatPageState extends State<ChatPage> {
                       splashColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       hoverColor: Colors.transparent,
-                      icon: Icon(Icons.settings),
+                      icon: const Icon(Icons.settings),
                       onPressed: () {
                         showConfig();
                       },
@@ -302,28 +300,28 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
         ),
-        Expanded(
+        const Expanded(
           child: MessageList(),
         ),
         Container(
           height: 1,
           color: Colors.grey,
         ),
-        Container(
+        SizedBox(
           height: 40,
           child: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 10,
               ),
               Builder(
                 builder: (context1) {
                   return MouseRegion(
                       onEnter: (event) {
-                        this.showFavFace(context1, input);
+                        showFavFace(context1, input);
                       },
                       onExit: ((event) {
-                        this.leaveButton();
+                        leaveButton();
                       }),
                       child: IconButton(
                         icon: const Icon(Icons.tag_faces),
@@ -333,7 +331,7 @@ class _ChatPageState extends State<ChatPage> {
                         highlightColor: Colors.transparent,
                         hoverColor: Colors.transparent,
                         onPressed: () {
-                          this.showFace(context1, input);
+                          showFace(context1, input);
                         },
                       ));
                 },
@@ -403,7 +401,7 @@ class _ChatPageState extends State<ChatPage> {
             ],
           ),
         ),
-        Container(
+        SizedBox(
           height: 150,
           child: input,
         )
@@ -418,7 +416,7 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       body: Row(
         children: [
-          Container(
+          SizedBox(
             width: 150,
             child: EventWidget(
               buidler: (context) => FriendList(),

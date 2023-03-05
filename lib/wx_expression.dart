@@ -35,10 +35,10 @@ class WeChatExpression extends StatelessWidget {
           PointerDeviceKind.mouse,
         }),
         child: Container(
-          margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
+          margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
           child: GridView.custom(
             // padding: EdgeInsets.fromLTRB(10, 4, 10, 4),
-            padding: this.padding, //EdgeInsets.fromLTRB(10, 4, 10, 4),
+            padding: padding, //EdgeInsets.fromLTRB(10, 4, 10, 4),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
             ),
@@ -61,7 +61,8 @@ class AExpression extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      style: ButtonStyle(padding: MaterialStateProperty.all(EdgeInsets.all(2))),
+      style: ButtonStyle(
+          padding: MaterialStateProperty.all(const EdgeInsets.all(2))),
       child: SizedBox(
         child: Image(
           image: expression.asset,

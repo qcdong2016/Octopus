@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide MenuItem;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:octopus/native_notify.dart';
 import 'package:octopus/page_chat.dart';
@@ -32,7 +31,7 @@ Future<void> main() async {
   // 必须加上这一行。
   await windowManager.ensureInitialized();
 
-  WindowOptions windowOptions = WindowOptions(
+  WindowOptions windowOptions = const WindowOptions(
     // size: Size(800, 600),
     center: true,
     backgroundColor: Colors.transparent,
@@ -127,9 +126,9 @@ class _MyAppState extends State<MyApp> {
         return FlutterSmartDialog(child: child);
       },
       theme: theme,
-      home: LoginPage(),
+      home: const LoginPage(),
       routes: {
-        "/chat": ((context) => ChatPage()),
+        "/chat": ((context) => const ChatPage()),
       },
     );
   }

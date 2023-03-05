@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:protobuf/protobuf.dart';
 
 import 'package:http/http.dart' as http;
@@ -15,7 +14,7 @@ class ClientHttp extends RpcClient {
       String methodName,
       GeneratedMessage request,
       T emptyResponse) {
-    var url = 'http://${Data.server}/api/${serviceName}/${methodName}';
+    var url = 'http://${Data.server}/api/$serviceName/$methodName';
 
     return _invoke(url, request, emptyResponse);
   }

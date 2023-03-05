@@ -41,7 +41,7 @@ class NativeNotifyMacos implements NativeNotifyImpl {
     );
 
     final InitializationSettings initializationSettings =
-        InitializationSettings(
+        const InitializationSettings(
       macOS: initializationSettingsMacOS,
     );
 
