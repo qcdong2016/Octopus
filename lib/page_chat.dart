@@ -10,6 +10,7 @@ import 'package:octopus/data.dart';
 import 'package:octopus/event/event.dart';
 import 'package:octopus/event/event_widget.dart';
 import 'package:octopus/friend_list.dart';
+import 'package:octopus/pb/msg.pb.dart';
 import 'package:octopus/wx_expression.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:popover/popover.dart';
@@ -20,6 +21,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'chat_input.dart';
 import 'line_input.dart';
 import 'message_list.dart';
+
+import 'package:fixnum/fixnum.dart' as fixnum;
 
 class ChatPage extends StatefulWidget {
   const ChatPage({Key? key}) : super(key: key);
@@ -300,7 +303,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
         ),
-        const Expanded(
+        Expanded(
           child: MessageList(),
         ),
         Container(
@@ -381,6 +384,17 @@ class _ChatPageState extends State<ChatPage> {
                   if (result != null && result.files.single.path != null) {
                     Client.sendFile(result.files.single.path!, true);
                   }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                iconSize: 30,
+                color: Colors.grey,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                onPressed: () {
+                  Client.sendMsg(Data.data.chatTarget.iD, FocusMsg());
                 },
               ),
               IconButton(

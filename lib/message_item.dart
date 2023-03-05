@@ -126,12 +126,38 @@ class _MessageItemState extends State<MessageItem> {
     }
   }
 
+  Widget _createFocus() {
+    Text t;
+    if (widget.msg.sender == Data.data.me.iD) {
+      t = Text("你戳了他一下");
+    } else {
+      t = Text("他戳了你一下");
+    }
+
+    return Container(
+        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Expanded(child: SizedBox()),
+          Container(
+            padding: EdgeInsets.fromLTRB(15, 2, 15, 2),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 219, 219, 219),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: t,
+          ),
+          const Expanded(child: SizedBox()),
+        ]));
+  }
+
   Widget _createWidget() {
     late Widget child;
     if (widget.msg.type == "file") {
       child = _createFile();
     } else if (widget.msg.type == "image") {
       child = _createImage();
+    } else if (widget.msg.type == "focus") {
+      return _createFocus();
     } else {
       child = ExpressionText(widget.msg.content, textStyle);
     }

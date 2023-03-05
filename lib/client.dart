@@ -110,6 +110,19 @@ class Client extends RpcClient {
     Data.data.animateScroller(Data.data.pageScrollerController);
   }
 
+  static sendMsg(int to, what) async {
+    var msg = Msg(
+      to: fixnum.Int64(to),
+    );
+    if (what is TextMsg) {
+      msg.text = what;
+    } else if (what is FocusMsg) {
+      msg.focus = what;
+    }
+    var resp = await ChatApi(Client.instance).send(null, msg);
+    Data.data.addMessage(resp);
+  }
+
   static sendFile(String filename, bool isImage) {
     var msg = Msg(
       to: fixnum.Int64(Data.data.chatTarget.iD),

@@ -11,10 +11,10 @@ message Friend {
 }
 
 message OnLogin {
-    Friend          Me      = 1;
-    repeated Friend Friends = 2;
-    string          Msg     = 3;
-    bool Reconnect = 4;
+    Friend          Me        = 1;
+    repeated Friend Friends   = 2;
+    string          Msg       = 3;
+    bool            Reconnect = 4;
 }
 
 message KickReq {
@@ -28,7 +28,7 @@ message OfflineReq {
     int64 ID = 1;
 }
 message OnUploadReq {
-    string ID = 1;
+    string ID   = 1;
     int64  From = 2; // 群组id/发送者id
 }
 
@@ -44,16 +44,20 @@ message FileMsg {
     string FileName = 1;
 }
 
+message FocusMsg {
+}
+
 message Msg {
-    int64 Sender = 1; // 发送者id
-    int64 From   = 2; // 群组id/发送者id
-    int64 To     = 3; // 接受者
-    oneof Data {
-        TextMsg  Text  = 4;
-        FileMsg  File  = 5;
-        ImageMsg Image = 6;
+    int64  Sender = 1; // 发送者id
+    int64  From   = 2; // 群组id/发送者id
+    int64  To     = 3; // 接受者
+    string ID     = 4;
+    oneof  Data {
+        TextMsg  Text  = 5;
+        FileMsg  File  = 6;
+        ImageMsg Image = 7;
+        FocusMsg Focus = 8;
     };
-    string ID = 7;
 }
 
 // server call client

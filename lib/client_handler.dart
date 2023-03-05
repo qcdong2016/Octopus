@@ -22,6 +22,10 @@ class ClientHandler extends S2CServiceBase {
 
   @override
   Future<Empty> onMsg(ServerContext ctx, Msg request) {
+    if (request.hasFocus()) {
+      Data.notifyEvent.emit();
+    }
+
     Data.data.addMessage(request);
     return Future(() => Empty());
   }

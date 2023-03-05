@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide MenuItem;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:octopus/data.dart';
 import 'package:octopus/native_notify.dart';
 import 'package:octopus/page_chat.dart';
 import 'package:system_tray/system_tray.dart';
@@ -38,12 +39,17 @@ Future<void> main() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
+
+  showFocus() async {
     await windowManager.show();
     await windowManager.focus();
-  });
+  }
+
+  windowManager.waitUntilReadyToShow(windowOptions, showFocus);
 
   NativeNotify.init();
+
+  Data.notifyEvent.connect(showFocus);
 
   runApp(const MyApp());
 }

@@ -35,17 +35,8 @@ class _ChatInputState extends State<ChatInput> {
             !event.isShiftPressed) {
           var text = widget.controller.text.trim();
           if (text != "") {
-            // var msg = utf8.encode(text);
-            // var msg1 = base64Encode(msg);
-
-            var resp = await ChatApi(Client.instance).send(
-                null,
-                Msg(
-                  to: fixnum.Int64(Data.data.chatTarget.iD),
-                  text: TextMsg(text: text),
-                ));
+            await Client.sendMsg(Data.data.chatTarget.iD, TextMsg(text: text));
             widget.controller.text = "";
-            Data.data.addMessage(resp);
           }
         }
 
